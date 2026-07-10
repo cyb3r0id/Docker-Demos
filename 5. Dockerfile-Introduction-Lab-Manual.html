@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Step 01 — Introduction to Dockerfiles &amp; Instructions | Cl0uDRec0N Lab Manual</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0d0d0d;
+    color: #a0a0a0;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+/* ── Header ── */
+.header {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    padding: 30px;
+    border-bottom: 3px solid #ffd93d;
+    position: relative;
+}
+.header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, #ffd93d 0%, #f7931e 100%);
+}
+.brand {
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffd93d;
+    text-shadow: 0 0 10px rgba(255,217,61,0.3);
+    letter-spacing: 2px;
+}
+.course-title { font-size: 32px; color: #ffffff; margin: 15px 0 10px; font-weight: 600; }
+.subtitle { font-size: 18px; color: #4ecdc4; font-weight: 300; }
+
+/* ── Meta cards ── */
+.lab-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 30px;
+    background-color: #151515;
+    border-bottom: 1px solid #2d2d2d;
+}
+.info-card {
+    background-color: #1f1f1f;
+    padding: 20px;
+    border-radius: 6px;
+    border-left: 4px solid #ffd93d;
+    transition: all .3s;
+}
+.info-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,217,61,.2); }
+.info-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.info-value { font-size: 18px; color: #ffffff; font-weight: 600; }
+
+/* ── Content ── */
+.content { padding: 30px; }
+.section { margin-bottom: 40px; }
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #2d2d2d 0%, #1f1f1f 100%);
+    padding: 15px 20px;
+    border-radius: 6px;
+    border-left: 4px solid #4ecdc4;
+    cursor: pointer;
+    transition: all .3s;
+    margin-bottom: 20px;
+}
+.section-header:hover {
+    background: linear-gradient(135deg, #353535 0%, #252525 100%);
+    border-left-color: #ffd93d;
+}
+.section-title { font-size: 24px; color: #ffffff; font-weight: 600; }
+.toggle-icon { font-size: 20px; color: #4ecdc4; transition: transform .3s; }
+
+.section-content { padding: 0 20px; max-height: 0; overflow: hidden; transition: max-height .5s ease; }
+.section-content.active { max-height: 90000px; padding: 20px; }
+
+/* ── Callout boxes ── */
+.tip-box, .warning-box, .info-box, .success-box, .danger-box {
+    padding: 20px;
+    border-radius: 6px;
+    margin: 20px 0;
+    border-left: 4px solid;
+    position: relative;
+    padding-left: 60px;
+}
+.tip-box     { background-color: rgba(78,205,196,.10); border-left-color: #4ecdc4; }
+.warning-box { background-color: rgba(255,193,7,.10);  border-left-color: #FFC107; }
+.info-box    { background-color: rgba(36,150,237,.10); border-left-color: #2496ED; }
+.success-box { background-color: rgba(46,213,115,.15); border-left-color: #2ed573; }
+.danger-box  { background-color: rgba(231,76,60,.15);  border-left-color: #e74c3c; }
+.box-icon { position: absolute; left: 20px; top: 20px; font-size: 24px; }
+.tip-box     .box-icon { color: #4ecdc4; }
+.warning-box .box-icon { color: #FFC107; }
+.info-box    .box-icon { color: #2496ED; }
+.success-box .box-icon { color: #2ed573; }
+.danger-box  .box-icon { color: #e74c3c; }
+.box-title { font-weight: 600; color: #ffffff; margin-bottom: 10px; font-size: 16px; }
+
+/* ── Code blocks ── */
+.code-container { position: relative; margin: 20px 0; }
+.code-header {
+    background-color: #0a0a0a;
+    padding: 10px 15px;
+    border-radius: 6px 6px 0 0;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #2d2d2d;
+}
+.code-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+.copy-btn {
+    background-color: #2d2d2d;
+    color: #4ecdc4;
+    border: 1px solid #4ecdc4;
+    padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all .3s;
+}
+.copy-btn:hover { background-color: #4ecdc4; color: #0d0d0d; }
+.copy-btn.copied { background-color: #2ed573; border-color: #2ed573; color: #fff; }
+pre {
+    background-color: #0a0a0a;
+    padding: 20px;
+    border-radius: 0 0 6px 6px;
+    overflow-x: auto; margin: 0;
+    border: 1px solid #2d2d2d; border-top: none;
+}
+code { font-family: 'Courier New', monospace; font-size: 14px; color: #e0e0e0; line-height: 1.6; }
+.sh-cmd      { color: #4ecdc4; }
+.sh-flag     { color: #ff6b35; }
+.sh-arg      { color: #ffd93d; }
+.sh-comment  { color: #666; font-style: italic; }
+.sh-out      { color: #6b7280; }
+.df-instr    { color: #a78bfa; font-weight: 700; }
+.df-arg      { color: #ffd93d; }
+
+/* ── Tables ── */
+table { width: 100%; border-collapse: collapse; margin: 20px 0; background-color: #1f1f1f; border-radius: 6px; overflow: hidden; }
+th { background-color: #2d2d2d; color: #ffffff; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid #ffd93d; }
+td { padding: 15px; border-bottom: 1px solid #2d2d2d; color: #b0b0b0; }
+tr:hover { background-color: #252525; }
+
+/* ── Diagram container ── */
+.diagram-container {
+    background-color: #0a0a0a;
+    border: 2px solid #2d2d2d;
+    border-radius: 8px;
+    padding: 30px;
+    margin: 30px 0;
+    text-align: center;
+}
+.diagram-container svg { max-width: 100%; height: auto; }
+.diagram-caption {
+    font-size: 12px;
+    color: #555;
+    margin-top: 12px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: .04em;
+}
+
+/* ── Highlight box ── */
+.highlight-yellow {
+    background: linear-gradient(135deg, rgba(255,217,61,.15) 0%, rgba(255,217,61,.05) 100%);
+    padding: 20px; border-radius: 8px;
+    border: 2px solid #ffd93d; margin: 20px 0;
+}
+
+/* ── Step box ── */
+.step-box {
+    background-color: #1f1f1f;
+    border: 1px solid #2d2d2d;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all .3s;
+}
+.step-box:hover { border-color: #4ecdc4; box-shadow: 0 2px 8px rgba(78,205,196,.1); }
+.step-title { font-size: 20px; color: #ffffff; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; }
+.step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #ffd93d 0%, #f7931e 100%);
+    color: #0d0d0d; width: 34px; height: 34px; border-radius: 50%;
+    font-weight: bold; font-size: 16px; flex-shrink: 0;
+}
+.step-body { color: #b0b0b0; margin-left: 48px; line-height: 1.8; }
+.step-body code { font-family: 'Courier New', monospace; background: #0a0a0a; border: 1px solid #2d2d2d; padding: 1px 6px; border-radius: 3px; color: #ffd93d; font-size: 13px; }
+
+/* ── Lab / knowledge-check ── */
+.lab-task {
+    background-color: #1f1f1f;
+    border: 1px dashed #4ecdc4;
+    border-radius: 6px;
+    padding: 18px 20px;
+    margin: 16px 0;
+}
+.lab-task .lab-task-label { font-size: 11px; color: #4ecdc4; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 700; }
+.answer-line { border-bottom: 1px solid #3d3d3d; height: 26px; margin-top: 10px; }
+.qnum { display:inline-flex; align-items:center; justify-content:center; background:#2d2d2d; color:#ffd93d; width:24px; height:24px; border-radius:50%; font-size:12px; font-weight:700; margin-right:10px; }
+
+/* ── Footer ── */
+.footer { background-color: #0a0a0a; padding: 30px; text-align: center; border-top: 3px solid #ffd93d; margin-top: 40px; }
+.footer-brand { font-size: 24px; font-weight: bold; color: #ffd93d; margin-bottom: 15px; letter-spacing: 2px; }
+.contact-info { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-top: 15px; }
+.contact-item { color: #4ecdc4; text-decoration: none; transition: color .3s; }
+.contact-item:hover { color: #ffd93d; }
+
+/* ── Scroll top ── */
+.scroll-top {
+    position: fixed; bottom: 30px; right: 30px;
+    background: linear-gradient(135deg, #ffd93d 0%, #f7931e 100%);
+    color: #0d0d0d; width: 50px; height: 50px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; opacity: 0; transition: opacity .3s;
+    box-shadow: 0 4px 12px rgba(255,217,61,.3); font-weight: bold; font-size: 18px;
+}
+.scroll-top.visible { opacity: 1; }
+.scroll-top:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(255,217,61,.4); }
+
+@media (max-width: 768px) {
+    body { padding: 10px; }
+    .course-title { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="header">
+    <div class="brand">Cl0uDRec0N</div>
+    <div class="course-title">Step 01 — Introduction to Dockerfiles &amp; Instructions</div>
+    <div class="subtitle">What Is a Dockerfile? · Building a Custom Image · Pushing It to Docker Hub</div>
+  </div>
+
+  <!-- ═══ META ═══ -->
+  <div class="lab-info">
+    <div class="info-card"><div class="info-label">Module</div><div class="info-value">Dockerfile Fundamentals</div></div>
+    <div class="info-card"><div class="info-label">Demo</div><div class="info-value">Step 01</div></div>
+    <div class="info-card"><div class="info-label">Focus</div><div class="info-value">Theory + First Build</div></div>
+    <div class="info-card"><div class="info-label">Prerequisites</div><div class="info-value">Docker Commands series</div></div>
+    <div class="info-card"><div class="info-label">Base Image</div><div class="info-value">nginx</div></div>
+    <div class="info-card"><div class="info-label">Next Up</div><div class="info-value">Demo 4 — Dockerfile LABEL</div></div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ SECTION 1 — LEARNING OBJECTIVES ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🎯 Learning Objectives</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+        <div class="tip-box">
+          <span class="box-icon">💡</span>
+          <div class="box-title">By the end of this demo, you should be able to:</div>
+          <p style="margin-bottom:6px;">1. Explain what a Dockerfile is and why it's called "the heart of Docker."</p>
+          <p style="margin-bottom:6px;">2. Write a minimal Dockerfile that builds on a base image and adds custom content.</p>
+          <p style="margin-bottom:6px;">3. Build a custom image with <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker build</code>.</p>
+          <p style="margin-bottom:6px;">4. Tag an image with your Docker Hub ID and push it using <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker tag</code> / <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker push</code>.</p>
+          <p>5. Use <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker search</code> to look up images from the CLI.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 2 — WHAT IS A DOCKERFILE ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">📄 What Is a Dockerfile?</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="highlight-yellow">
+          <strong style="color:#ffd93d;">Definition:</strong> A Dockerfile is a <strong style="color:#fff;">simple text file</strong> that contains a set of <strong style="color:#fff;">instructions</strong> for building a Docker image. It automates the process of creating images by specifying each step explicitly.
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> Create a "Docker Files" folder</div>
+          <div class="step-body">Keep your Dockerfile-based projects organized — e.g. a folder named <code>docker-files</code> for this demo.</div>
+        </div>
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">2</span> Name the file exactly <code style="color:#ffd93d;">Dockerfile</code></div>
+          <div class="step-body">Capital <strong style="color:#fff;">D</strong>, no file extension: <code>Dockerfile</code>. This is the filename Docker looks for by default when you run <code>docker build</code>.</div>
+        </div>
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">3</span> Define instructions inside it</div>
+          <div class="step-body">Each line — like <code>FROM</code> or <code>COPY</code> — is called an <strong style="color:#fff;">instruction</strong>. Instructions run in order, top to bottom, each one building on the previous step.</div>
+        </div>
+
+        <div class="info-box">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-title">Why Use a Dockerfile?</div>
+          Anything you'd want an image to do — install software, copy files, set environment variables, run setup commands, or launch your application — has to be defined somewhere. That "somewhere" is the Dockerfile. It's why Dockerfiles are often called <strong style="color:#ffd93d;">the heart of Docker</strong>.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 3 — THE ROADMAP AHEAD ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🗺️ The Dockerfile Instructions Roadmap</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="info-box">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-title">Ten Dedicated Demos Ahead</div>
+          This demo covers only the basics — build an image, push it to Docker Hub. Demos 4 through 13 go instruction-by-instruction so you can confidently write real-world Dockerfiles by the end.
+        </div>
+
+        <table>
+          <thead><tr><th>Instruction</th><th>What It's For (previewed — covered in depth later)</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#ffd93d;">FROM</td><td>Sets the base image everything else builds on top of (covered in this demo).</td></tr>
+            <tr><td style="color:#ffd93d;">LABEL</td><td>Attaches metadata (author, version, description) to the image.</td></tr>
+            <tr><td style="color:#ffd93d;">COPY</td><td>Copies files from your build context into the image (covered in this demo).</td></tr>
+            <tr><td style="color:#ffd93d;">ADD</td><td>Like COPY, but can also extract archives and fetch from a URL.</td></tr>
+            <tr><td style="color:#ffd93d;">ARG</td><td>Defines a build-time variable you can pass in when building the image.</td></tr>
+            <tr><td style="color:#ffd93d;">RUN</td><td>Executes a command while the image is being built (e.g. installing packages).</td></tr>
+            <tr><td style="color:#ffd93d;">EXPOSE</td><td>Documents which port(s) the container listens on.</td></tr>
+            <tr><td style="color:#ffd93d;">ENV</td><td>Sets environment variables inside the resulting container.</td></tr>
+            <tr><td style="color:#ffd93d;">WORKDIR</td><td>Sets the working directory for subsequent instructions and the running container.</td></tr>
+            <tr><td style="color:#ffd93d;">ENTRYPOINT</td><td>Defines the fixed command that runs when a container starts.</td></tr>
+            <tr><td style="color:#ffd93d;">HEALTHCHECK</td><td>Tells Docker how to test whether the container is still healthy.</td></tr>
+            <tr><td style="color:#ffd93d;">USER</td><td>Sets which user the container process runs as.</td></tr>
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 4 — THIS DEMO'S DOCKERFILE ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🧱 This Demo's Dockerfile</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="highlight-yellow">
+          <strong style="color:#ffd93d;">FROM nginx</strong> — take the public nginx image as the base. On top of it, <strong style="color:#ffd93d;">COPY</strong> a custom <code style="color:#fff;">index.html</code> into the location nginx serves files from.
+        </div>
+
+        <div class="code-container">
+          <div class="code-header"><span class="code-label">Dockerfile</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="df-instr">FROM</span> <span class="df-arg">nginx</span>
+<span class="df-instr">COPY</span> <span class="df-arg">index.html /usr/share/nginx/html/</span></code></pre>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> FROM nginx</div>
+          <div class="step-body">Every instruction after this line builds <em>on top of</em> the official nginx image — you inherit its OS layer, nginx binary, and default config.</div>
+        </div>
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">2</span> COPY index.html /usr/share/nginx/html/</div>
+          <div class="step-body">Copies your own <code>index.html</code> (sitting next to the Dockerfile) into nginx's default web root, overwriting the default placeholder page.</div>
+        </div>
+
+        <div class="info-box">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-title">Confirm the Base Image on Docker Hub</div>
+          Search <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">nginx</code> on <a href="https://hub.docker.com" target="_blank" style="color:#4ecdc4;">hub.docker.com</a> — that's the official image this Dockerfile is based on.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 5 — THE FULL WORKFLOW ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🔄 Build → Test → Tag → Push — the Full Workflow</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <!-- DIAGRAM 1 — Build to push workflow -->
+        <div class="diagram-container">
+          <svg viewBox="0 0 760 190" xmlns="http://www.w3.org/2000/svg" style="max-width:760px;">
+            <defs><marker id="dfw" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#ffd93d"/></marker></defs>
+
+            <text x="380" y="20" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="13" font-weight="700" fill="#ffd93d" letter-spacing="1">FROM DOCKERFILE TO DOCKER HUB</text>
+
+            <rect x="20" y="60" width="120" height="60" rx="8" fill="#1f1f1f" stroke="#a78bfa" stroke-width="2"/>
+            <text x="80" y="86" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" font-weight="700" fill="#a78bfa">Dockerfile</text>
+            <text x="80" y="104" text-anchor="middle" font-family="Courier New,monospace" font-size="9" fill="#b0b0b0">FROM + COPY</text>
+
+            <line x1="140" y1="90" x2="180" y2="90" stroke="#ffd93d" stroke-width="2" marker-end="url(#dfw)"/>
+            <text x="160" y="80" text-anchor="middle" font-family="Courier New,monospace" font-size="8" fill="#ffd93d">build</text>
+
+            <rect x="184" y="60" width="120" height="60" rx="8" fill="#1c2333" stroke="#2496ED" stroke-width="2"/>
+            <text x="244" y="86" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" font-weight="700" fill="#2496ED">my-nginx-custom:v1</text>
+            <text x="244" y="104" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="9" fill="#b0b0b0">local image</text>
+
+            <line x1="304" y1="90" x2="344" y2="90" stroke="#ffd93d" stroke-width="2" marker-end="url(#dfw)"/>
+            <text x="324" y="80" text-anchor="middle" font-family="Courier New,monospace" font-size="8" fill="#ffd93d">run + test</text>
+
+            <rect x="348" y="60" width="120" height="60" rx="8" fill="#16241a" stroke="#2ed573" stroke-width="2"/>
+            <text x="408" y="86" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" font-weight="700" fill="#2ed573">Container</text>
+            <text x="408" y="104" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="9" fill="#b0b0b0">verify index.html</text>
+
+            <line x1="468" y1="90" x2="508" y2="90" stroke="#ffd93d" stroke-width="2" marker-end="url(#dfw)"/>
+            <text x="488" y="80" text-anchor="middle" font-family="Courier New,monospace" font-size="8" fill="#ffd93d">tag</text>
+
+            <rect x="512" y="60" width="120" height="60" rx="8" fill="#1f1f1f" stroke="#f7931e" stroke-width="2"/>
+            <text x="572" y="82" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" font-weight="700" fill="#f7931e">yourid/my-nginx-</text>
+            <text x="572" y="96" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" font-weight="700" fill="#f7931e">custom:v1</text>
+
+            <line x1="632" y1="90" x2="672" y2="90" stroke="#ffd93d" stroke-width="2" marker-end="url(#dfw)"/>
+            <text x="652" y="80" text-anchor="middle" font-family="Courier New,monospace" font-size="8" fill="#ffd93d">push</text>
+
+            <rect x="676" y="60" width="70" height="60" rx="8" fill="#16241a" stroke="#2ed573" stroke-width="2"/>
+            <text x="711" y="90" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" font-weight="700" fill="#2ed573">Docker</text>
+            <text x="711" y="104" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" font-weight="700" fill="#2ed573">Hub</text>
+
+            <rect x="20" y="146" width="726" height="30" rx="6" fill="#111" stroke="#2d2d2d"/>
+            <text x="383" y="166" text-anchor="middle" font-family="Courier New,monospace" font-size="10" fill="#b0b0b0">docker build → docker run (test) → docker tag → docker login → docker push</text>
+          </svg>
+          <div class="diagram-caption">Diagram 1 — Every custom image goes through this same build-test-tag-push cycle before it's shareable from Docker Hub.</div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> Build the image</div>
+          <div class="step-body">
+            Run this from inside the <code>docker-files</code> folder, where the Dockerfile lives:
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> build <span class="sh-flag">-t</span> <span class="sh-arg">my-nginx-custom:v1</span> .</code></pre>
+            </div>
+            <code>-t</code> names and tags the resulting image. The trailing <code>.</code> means "use the current directory as the build context" — that's where Docker looks for the Dockerfile and any files referenced by <code>COPY</code>.
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">2</span> Run &amp; test it</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> run <span class="sh-flag">--name</span> <span class="sh-arg">custom-test</span> <span class="sh-flag">-p</span> <span class="sh-arg">8080:80</span> <span class="sh-flag">-d</span> <span class="sh-arg">my-nginx-custom:v1</span></code></pre>
+            </div>
+            Visit <code>http://localhost:8080</code> and confirm your custom <code>index.html</code> is being served instead of the default nginx welcome page.
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">3</span> Tag it with your Docker Hub ID</div>
+          <div class="step-body">
+            Before pushing, the image needs to be tagged with <em>your</em> Docker Hub username (the video uses <code>stacksimplify</code> as an example — substitute your own ID):
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> tag <span class="sh-arg">my-nginx-custom:v1</span> <span class="sh-arg">&lt;your-dockerhub-id&gt;/my-nginx-custom:v1</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">4</span> Log in and push</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> login
+<span class="sh-cmd">docker</span> push <span class="sh-arg">&lt;your-dockerhub-id&gt;/my-nginx-custom:v1</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">5</span> Verify on Docker Hub</div>
+          <div class="step-body">Log in at <a href="https://hub.docker.com" target="_blank" style="color:#4ecdc4;">hub.docker.com</a> and confirm the new repository and tag appear under your account.</div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">6</span> Bonus: docker search</div>
+          <div class="step-body">
+            A quick way to look up images from the CLI without opening a browser:
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> search <span class="sh-arg">nginx</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 6 — SUMMARY ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">📋 Summary &amp; Coming Up Next</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="success-box">
+          <span class="box-icon">✅</span>
+          <div class="box-title">Summary</div>
+          <p style="margin-bottom:10px;">A <strong>Dockerfile</strong> is a plain-text set of build instructions, named exactly <code>Dockerfile</code>.</p>
+          <p style="margin-bottom:10px;">A minimal example: <strong>FROM</strong> a base image, then <strong>COPY</strong> in your own files.</p>
+          <p><strong>docker build</strong> creates the image → <strong>docker run</strong> tests it → <strong>docker tag</strong> prepares it with your Docker Hub ID → <strong>docker push</strong> publishes it.</p>
+        </div>
+
+        <div class="tip-box">
+          <span class="box-icon">💡</span>
+          <div class="box-title">Coming Up Next</div>
+          Demos 4–13 dig into each Dockerfile instruction individually: <strong>LABEL, ADD, ARG, RUN, EXPOSE, ENV, WORKDIR, ENTRYPOINT, HEALTHCHECK, and USER</strong>.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 7 — LAB REFLECTION ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">📝 Lab Reflection — Knowledge Check</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 1</div>
+          <span class="qnum">1</span>What must a Dockerfile be named, exactly?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 2</div>
+          <span class="qnum">2</span>What do the <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">FROM</code> and <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">COPY</code> instructions do in this demo's Dockerfile?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 3</div>
+          <span class="qnum">3</span>In <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker build -t my-nginx-custom:v1 .</code>, what does the trailing dot mean?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 4</div>
+          <span class="qnum">4</span>Why do you need to run <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker tag</code> before <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker push</code>?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Task 5 — Try it yourself</div>
+          <span class="qnum">5</span>Write your own two-line Dockerfile (FROM + COPY), build it, run it, and confirm your custom page loads at <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">localhost:8080</code>. Note the image name/tag you used.
+          <div class="answer-line"></div><div class="answer-line"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <div class="footer">
+    <div class="footer-brand">Cl0uDRec0N</div>
+    <div>Kubernetes &amp; Docker Training — Cloud Technology Solutions</div>
+    <div class="contact-info">
+      <a class="contact-item" href="mailto:cyb3rlabs@hotmail.com">📧 cyb3rlabs@hotmail.com</a>
+      <a class="contact-item" href="#">📱 WhatsApp: +1 431-337-3360</a>
+      <a class="contact-item" href="https://github.com/ComputerTrainer0/Mastering-Docker-Kube" target="_blank">💻 GitHub Code</a>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+
+<script>
+function toggle(header) {
+  const content = header.nextElementSibling;
+  const icon = header.querySelector('.toggle-icon');
+  const isActive = content.classList.toggle('active');
+  icon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function copyCode(btn) {
+  const pre = btn.closest('.code-container').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+window.addEventListener('scroll', () => {
+  const st = document.getElementById('scrollTop');
+  st.classList.toggle('visible', window.scrollY > 300);
+});
+</script>
+</body>
+</html>
