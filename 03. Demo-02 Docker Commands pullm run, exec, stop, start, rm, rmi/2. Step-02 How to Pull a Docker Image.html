@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Step 02 — How to Pull a Docker Image | Cl0uDRec0N Lab Manual</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0d0d0d;
+    color: #a0a0a0;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+/* ── Header ── */
+.header {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    padding: 30px;
+    border-bottom: 3px solid #ffd93d;
+    position: relative;
+}
+.header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, #ffd93d 0%, #f7931e 100%);
+}
+.brand {
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffd93d;
+    text-shadow: 0 0 10px rgba(255,217,61,0.3);
+    letter-spacing: 2px;
+}
+.course-title { font-size: 32px; color: #ffffff; margin: 15px 0 10px; font-weight: 600; }
+.subtitle { font-size: 18px; color: #4ecdc4; font-weight: 300; }
+
+/* ── Meta cards ── */
+.lab-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 30px;
+    background-color: #151515;
+    border-bottom: 1px solid #2d2d2d;
+}
+.info-card {
+    background-color: #1f1f1f;
+    padding: 20px;
+    border-radius: 6px;
+    border-left: 4px solid #ffd93d;
+    transition: all .3s;
+}
+.info-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,217,61,.2); }
+.info-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.info-value { font-size: 18px; color: #ffffff; font-weight: 600; }
+
+/* ── Content ── */
+.content { padding: 30px; }
+.section { margin-bottom: 40px; }
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #2d2d2d 0%, #1f1f1f 100%);
+    padding: 15px 20px;
+    border-radius: 6px;
+    border-left: 4px solid #4ecdc4;
+    cursor: pointer;
+    transition: all .3s;
+    margin-bottom: 20px;
+}
+.section-header:hover {
+    background: linear-gradient(135deg, #353535 0%, #252525 100%);
+    border-left-color: #ffd93d;
+}
+.section-title { font-size: 24px; color: #ffffff; font-weight: 600; }
+.toggle-icon { font-size: 20px; color: #4ecdc4; transition: transform .3s; }
+
+.section-content { padding: 0 20px; max-height: 0; overflow: hidden; transition: max-height .5s ease; }
+.section-content.active { max-height: 90000px; padding: 20px; }
+
+/* ── Callout boxes ── */
+.tip-box, .warning-box, .info-box, .success-box, .danger-box {
+    padding: 20px;
+    border-radius: 6px;
+    margin: 20px 0;
+    border-left: 4px solid;
+    position: relative;
+    padding-left: 60px;
+}
+.tip-box     { background-color: rgba(78,205,196,.10); border-left-color: #4ecdc4; }
+.warning-box { background-color: rgba(255,193,7,.10);  border-left-color: #FFC107; }
+.info-box    { background-color: rgba(36,150,237,.10); border-left-color: #2496ED; }
+.success-box { background-color: rgba(46,213,115,.15); border-left-color: #2ed573; }
+.danger-box  { background-color: rgba(231,76,60,.15);  border-left-color: #e74c3c; }
+.box-icon { position: absolute; left: 20px; top: 20px; font-size: 24px; }
+.tip-box     .box-icon { color: #4ecdc4; }
+.warning-box .box-icon { color: #FFC107; }
+.info-box    .box-icon { color: #2496ED; }
+.success-box .box-icon { color: #2ed573; }
+.danger-box  .box-icon { color: #e74c3c; }
+.box-title { font-weight: 600; color: #ffffff; margin-bottom: 10px; font-size: 16px; }
+
+/* ── Code blocks ── */
+.code-container { position: relative; margin: 20px 0; }
+.code-header {
+    background-color: #0a0a0a;
+    padding: 10px 15px;
+    border-radius: 6px 6px 0 0;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #2d2d2d;
+}
+.code-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+.copy-btn {
+    background-color: #2d2d2d;
+    color: #4ecdc4;
+    border: 1px solid #4ecdc4;
+    padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all .3s;
+}
+.copy-btn:hover { background-color: #4ecdc4; color: #0d0d0d; }
+.copy-btn.copied { background-color: #2ed573; border-color: #2ed573; color: #fff; }
+pre {
+    background-color: #0a0a0a;
+    padding: 20px;
+    border-radius: 0 0 6px 6px;
+    overflow-x: auto; margin: 0;
+    border: 1px solid #2d2d2d; border-top: none;
+}
+code { font-family: 'Courier New', monospace; font-size: 14px; color: #e0e0e0; line-height: 1.6; }
+.sh-cmd     { color: #4ecdc4; }
+.sh-flag    { color: #ff6b35; }
+.sh-arg     { color: #ffd93d; }
+.sh-comment { color: #666; font-style: italic; }
+.sh-out     { color: #6b7280; }
+
+/* ── Tables ── */
+table { width: 100%; border-collapse: collapse; margin: 20px 0; background-color: #1f1f1f; border-radius: 6px; overflow: hidden; }
+th { background-color: #2d2d2d; color: #ffffff; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid #ffd93d; }
+td { padding: 15px; border-bottom: 1px solid #2d2d2d; color: #b0b0b0; }
+tr:hover { background-color: #252525; }
+
+/* ── Diagram container ── */
+.diagram-container {
+    background-color: #0a0a0a;
+    border: 2px solid #2d2d2d;
+    border-radius: 8px;
+    padding: 30px;
+    margin: 30px 0;
+    text-align: center;
+}
+.diagram-container svg { max-width: 100%; height: auto; }
+.diagram-caption {
+    font-size: 12px;
+    color: #555;
+    margin-top: 12px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: .04em;
+}
+
+/* ── Highlight box ── */
+.highlight-yellow {
+    background: linear-gradient(135deg, rgba(255,217,61,.15) 0%, rgba(255,217,61,.05) 100%);
+    padding: 20px; border-radius: 8px;
+    border: 2px solid #ffd93d; margin: 20px 0;
+}
+
+/* ── Step box ── */
+.step-box {
+    background-color: #1f1f1f;
+    border: 1px solid #2d2d2d;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all .3s;
+}
+.step-box:hover { border-color: #4ecdc4; box-shadow: 0 2px 8px rgba(78,205,196,.1); }
+.step-title { font-size: 20px; color: #ffffff; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; }
+.step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #ffd93d 0%, #f7931e 100%);
+    color: #0d0d0d; width: 34px; height: 34px; border-radius: 50%;
+    font-weight: bold; font-size: 16px; flex-shrink: 0;
+}
+.step-body { color: #b0b0b0; margin-left: 48px; line-height: 1.8; }
+.step-body code { font-family: 'Courier New', monospace; background: #0a0a0a; border: 1px solid #2d2d2d; padding: 1px 6px; border-radius: 3px; color: #ffd93d; font-size: 13px; }
+
+/* ── Comparison grid ── */
+.cmp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+.cmp-card { background-color: #1f1f1f; border-radius: 8px; overflow: hidden; }
+.cmp-head { padding: 14px 20px; font-size: 16px; font-weight: 700; letter-spacing: .05em; }
+.cmp-head.red  { background: rgba(231,76,60,.2);  color: #e74c3c; border-bottom: 2px solid #e74c3c; }
+.cmp-head.blue { background: rgba(36,150,237,.2); color: #2496ED; border-bottom: 2px solid #2496ED; }
+.cmp-head.green { background: rgba(46,213,115,.2); color: #2ed573; border-bottom: 2px solid #2ed573; }
+.cmp-body { padding: 16px 20px; }
+.cmp-row { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid #2d2d2d; font-size: 14px; color: #b0b0b0; }
+.cmp-row:last-child { border-bottom: none; }
+.cmp-row .icon { flex-shrink: 0; width: 20px; }
+
+/* ── Lab / knowledge-check ── */
+.lab-task {
+    background-color: #1f1f1f;
+    border: 1px dashed #4ecdc4;
+    border-radius: 6px;
+    padding: 18px 20px;
+    margin: 16px 0;
+}
+.lab-task .lab-task-label { font-size: 11px; color: #4ecdc4; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 700; }
+.answer-line { border-bottom: 1px solid #3d3d3d; height: 26px; margin-top: 10px; }
+.qnum { display:inline-flex; align-items:center; justify-content:center; background:#2d2d2d; color:#ffd93d; width:24px; height:24px; border-radius:50%; font-size:12px; font-weight:700; margin-right:10px; }
+
+/* ── Footer ── */
+.footer { background-color: #0a0a0a; padding: 30px; text-align: center; border-top: 3px solid #ffd93d; margin-top: 40px; }
+.footer-brand { font-size: 24px; font-weight: bold; color: #ffd93d; margin-bottom: 15px; letter-spacing: 2px; }
+.contact-info { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-top: 15px; }
+.contact-item { color: #4ecdc4; text-decoration: none; transition: color .3s; }
+.contact-item:hover { color: #ffd93d; }
+
+/* ── Scroll top ── */
+.scroll-top {
+    position: fixed; bottom: 30px; right: 30px;
+    background: linear-gradient(135deg, #ffd93d 0%, #f7931e 100%);
+    color: #0d0d0d; width: 50px; height: 50px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; opacity: 0; transition: opacity .3s;
+    box-shadow: 0 4px 12px rgba(255,217,61,.3); font-weight: bold; font-size: 18px;
+}
+.scroll-top.visible { opacity: 1; }
+.scroll-top:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(255,217,61,.4); }
+
+@media (max-width: 768px) {
+    body { padding: 10px; }
+    .course-title { font-size: 24px; }
+    .cmp-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="header">
+    <div class="brand">Cl0uDRec0N</div>
+    <div class="course-title">Step 02 — How to Pull a Docker Image</div>
+    <div class="subtitle">Docker Hub Repositories · Tags · Multi-Platform Images · Pull Limits · Alternative Registries</div>
+  </div>
+
+  <!-- ═══ META ═══ -->
+  <div class="lab-info">
+    <div class="info-card"><div class="info-label">Module</div><div class="info-value">Docker Fundamentals</div></div>
+    <div class="info-card"><div class="info-label">Demo</div><div class="info-value">Step 02 / Section 02</div></div>
+    <div class="info-card"><div class="info-label">Focus</div><div class="info-value">Hands-On — docker pull</div></div>
+    <div class="info-card"><div class="info-label">Prerequisites</div><div class="info-value">Step 01 — Docker Commands</div></div>
+    <div class="info-card"><div class="info-label">Image Used</div><div class="info-value">stacksimplify/my-nginx</div></div>
+    <div class="info-card"><div class="info-label">Tags Available</div><div class="info-value">v1 · v2 · v3 · v4</div></div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ SECTION 1 — LEARNING OBJECTIVES ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🎯 Learning Objectives</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+        <div class="tip-box">
+          <span class="box-icon">💡</span>
+          <div class="box-title">By the end of this demo, you should be able to:</div>
+          <p style="margin-bottom:6px;">1. Find a public Docker image on Docker Hub and inspect its available tags.</p>
+          <p style="margin-bottom:6px;">2. Explain what a multi-platform (amd64 / arm64) image is.</p>
+          <p style="margin-bottom:6px;">3. Explain Docker Hub's image pull limits, and how they differ by plan.</p>
+          <p style="margin-bottom:6px;">4. Use an alternative registry (GitHub Container Registry) when pull limits are hit.</p>
+          <p>5. Pull a tagged image with <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker pull</code> and verify it locally.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 2 — THE IMAGE WE'RE USING ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🔎 Finding the Image on Docker Hub</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="highlight-yellow">
+          The demo image is <strong style="color:#ffd93d;">stacksimplify/my-nginx</strong> — a <strong style="color:#fff;">public</strong> image on Docker Hub, so no login or registry credentials are required to pull it.
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> Search on hub.docker.com</div>
+          <div class="step-body">Go to <a href="https://hub.docker.com" target="_blank" style="color:#4ecdc4;">hub.docker.com</a> and search <code>stacksimplify/my-nginx</code>. Click the repository to see its overview page.</div>
+        </div>
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">2</span> Click the "Tags" tab</div>
+          <div class="step-body">The Tags tab lists every published version of the image: <code>v1</code>, <code>v2</code>, <code>v3</code>, and <code>v4</code>.</div>
+        </div>
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">3</span> Check platform compatibility</div>
+          <div class="step-body">This image is built for both <code>amd64</code> and <code>arm64</code> architectures — a <strong style="color:#fff;">multi-platform image</strong>. Docker automatically pulls the right variant for your machine's CPU architecture. Building multi-platform images is covered later, in the advanced sections of the course.</div>
+        </div>
+
+        <!-- DIAGRAM 1 — Docker Hub repo tags + multi-arch -->
+        <div class="diagram-container">
+          <svg viewBox="0 0 760 230" xmlns="http://www.w3.org/2000/svg" style="max-width:760px;">
+            <text x="380" y="20" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="13" font-weight="700" fill="#ffd93d" letter-spacing="1">stacksimplify/my-nginx — DOCKER HUB REPOSITORY</text>
+
+            <rect x="40" y="40" width="680" height="60" rx="8" fill="#1f1f1f" stroke="#4ecdc4" stroke-width="2"/>
+            <text x="380" y="65" text-anchor="middle" font-family="Courier New,monospace" font-size="13" font-weight="700" fill="#4ecdc4">stacksimplify/my-nginx</text>
+            <text x="380" y="85" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#b0b0b0">public repository — no login required</text>
+
+            <rect x="60" y="116" width="150" height="40" rx="6" fill="#16241a" stroke="#2ed573" stroke-width="1.5"/>
+            <text x="135" y="141" text-anchor="middle" font-family="Courier New,monospace" font-size="12" fill="#2ed573">:v1</text>
+            <rect x="228" y="116" width="150" height="40" rx="6" fill="#16241a" stroke="#2ed573" stroke-width="1.5"/>
+            <text x="303" y="141" text-anchor="middle" font-family="Courier New,monospace" font-size="12" fill="#2ed573">:v2</text>
+            <rect x="396" y="116" width="150" height="40" rx="6" fill="#16241a" stroke="#2ed573" stroke-width="1.5"/>
+            <text x="471" y="141" text-anchor="middle" font-family="Courier New,monospace" font-size="12" fill="#2ed573">:v3</text>
+            <rect x="564" y="116" width="150" height="40" rx="6" fill="#16241a" stroke="#2ed573" stroke-width="1.5"/>
+            <text x="639" y="141" text-anchor="middle" font-family="Courier New,monospace" font-size="12" fill="#2ed573">:v4</text>
+
+            <rect x="60" y="172" width="654" height="42" rx="6" fill="#111" stroke="#2d2d2d"/>
+            <text x="387" y="188" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" font-weight="700" fill="#4ecdc4">Multi-platform image</text>
+            <text x="387" y="204" text-anchor="middle" font-family="Courier New,monospace" font-size="10" fill="#b0b0b0">linux/amd64 · linux/arm64 — Docker pulls the right variant automatically</text>
+          </svg>
+          <div class="diagram-caption">Diagram 1 — Each tag (v1–v4) is a separate build; each build supports both amd64 and arm64 architectures.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 3 — PULL LIMITS & ALTERNATIVE REGISTRY ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">⚠️ Docker Hub Pull Limits &amp; the Alternative Registry</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="warning-box">
+          <span class="box-icon">⚠️</span>
+          <div class="box-title">Docker Hub Enforces Image Pull Limits</div>
+          Docker Hub limits how many times you can pull images within a time window. Limits vary by account plan, and once a repository (shared across many students and courses) hits its daily limit, further pulls fail until the limit resets.
+        </div>
+
+        <table>
+          <thead><tr><th>Docker Hub Plan</th><th>Pull Limit</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#ffd93d;">Personal (free)</td><td>200 image pulls per 6 hours</td></tr>
+            <tr><td style="color:#ffd93d;">Pro</td><td>5,000 image pulls per day</td></tr>
+          </tbody>
+        </table>
+
+        <div class="info-box">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-title">Alternative — GitHub Container Registry (no pull limits)</div>
+          The same <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">my-nginx</code> image is also published to GitHub Packages under the <strong style="color:#fff;">stacksimplify</strong> org, with the same <code>v1</code>–<code>v4</code> tags and <strong style="color:#2ed573;">no download limits</strong>.
+        </div>
+
+        <div class="cmp-grid">
+          <div class="cmp-card">
+            <div class="cmp-head blue">Docker Hub</div>
+            <div class="cmp-body">
+              <div class="cmp-row"><span class="icon">🏷️</span> <code style="background:#0a0a0a;padding:1px 5px;border-radius:3px;color:#ffd93d;">stacksimplify/my-nginx:v1</code></div>
+              <div class="cmp-row"><span class="icon">⚠️</span> Subject to per-plan pull limits</div>
+              <div class="cmp-row"><span class="icon">🔓</span> Public — no login required</div>
+            </div>
+          </div>
+          <div class="cmp-card">
+            <div class="cmp-head green">GitHub Container Registry</div>
+            <div class="cmp-body">
+              <div class="cmp-row"><span class="icon">🏷️</span> <code style="background:#0a0a0a;padding:1px 5px;border-radius:3px;color:#ffd93d;">ghcr.io/stacksimplify/my-nginx:v1</code></div>
+              <div class="cmp-row"><span class="icon">✅</span> No download/pull limits</div>
+              <div class="cmp-row"><span class="icon">🔓</span> Public — no login required</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tip-box">
+          <span class="box-icon">💡</span>
+          <div class="box-title">Use This If Docker Hub Pulls Fail</div>
+          If you hit a "toomanyrequests" / rate-limit error pulling from Docker Hub, switch to the GHCR mirror by changing the image reference from <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">stacksimplify/my-nginx:v1</code> to <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">ghcr.io/stacksimplify/my-nginx:v1</code>.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 4 — PULLING THE IMAGE ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">⬇️ Pulling the Image</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> Run docker pull</div>
+          <div class="step-body">
+            Copy the pull command straight from the Docker Hub tag page, or type it manually:
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> pull <span class="sh-arg">stacksimplify/my-nginx:v1</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">2</span> Wait for the download</div>
+          <div class="step-body">
+            Docker downloads each image layer, then prints a confirmation:
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">output</span></div>
+              <pre><code><span class="sh-out">v1: Pulling from stacksimplify/my-nginx
+Status: Downloaded newer image for stacksimplify/my-nginx:v1</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">3</span> Verify with docker images</div>
+          <div class="step-body">
+            List local images to confirm the pull succeeded:
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> images</code></pre>
+            </div>
+            You should see <code>stacksimplify/my-nginx</code> listed with the <code>v1</code> tag, its image ID, and its size.
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">4</span> Confirm in Docker Desktop</div>
+          <div class="step-body">
+            Open Docker Desktop → <strong style="color:#fff;">Images</strong> → <strong style="color:#4ecdc4;">Local</strong> tab to see the same image listed with full details. If you're logged into Docker Hub inside Docker Desktop, the <strong style="color:#4ecdc4;">Hub</strong> tab shows every image in your Docker Hub account (all repos you have access to), while the <strong style="color:#4ecdc4;">Local</strong> tab shows only what's actually downloaded to your machine.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 5 — SUMMARY ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">📋 Summary &amp; Coming Up Next</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="success-box">
+          <span class="box-icon">✅</span>
+          <div class="box-title">Summary</div>
+          <p style="margin-bottom:10px;"><strong>stacksimplify/my-nginx</strong> is a public, multi-platform (amd64/arm64) image with tags <strong>v1–v4</strong>.</p>
+          <p style="margin-bottom:10px;">Docker Hub enforces <strong>pull limits</strong> — 200/6hrs on the free plan, 5,000/day on Pro — so a mirrored copy is also available on <strong>GitHub Container Registry (ghcr.io)</strong> with no limits.</p>
+          <p><code>docker pull &lt;image&gt;:&lt;tag&gt;</code> downloads the image; <code>docker images</code> confirms it landed locally, and Docker Desktop's Local tab shows the same thing visually.</p>
+        </div>
+
+        <div class="tip-box">
+          <span class="box-icon">💡</span>
+          <div class="box-title">Coming Up Next</div>
+          With the image pulled, the next demo runs a container from it and walks through starting, stopping, and removing that container.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 6 — LAB REFLECTION ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">📝 Lab Reflection — Knowledge Check</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 1</div>
+          <span class="qnum">1</span>Why can <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">stacksimplify/my-nginx</code> be pulled without logging in?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 2</div>
+          <span class="qnum">2</span>What does it mean for an image to be "multi-platform"? Which two architectures does this image support?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 3</div>
+          <span class="qnum">3</span>What is Docker Hub's pull limit on the free personal plan vs the Pro plan?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 4</div>
+          <span class="qnum">4</span>If Docker Hub pulls are rate-limited, what alternative registry and image path can you use instead?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Task 5 — Try it yourself</div>
+          <span class="qnum">5</span>Run <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker pull stacksimplify/my-nginx:v1</code>, then <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker images</code>. Paste the row showing your pulled image (repository, tag, image ID, size).
+          <div class="answer-line"></div><div class="answer-line"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <div class="footer">
+    <div class="footer-brand">Cl0uDRec0N</div>
+    <div>Kubernetes &amp; Docker Training — Cloud Technology Solutions</div>
+    <div class="contact-info">
+      <a class="contact-item" href="mailto:cyb3rlabs@hotmail.com">📧 cyb3rlabs@hotmail.com</a>
+      <a class="contact-item" href="#">📱 WhatsApp: +1 431-337-3360</a>
+      <a class="contact-item" href="https://github.com/ComputerTrainer0/Mastering-Docker-Kube" target="_blank">💻 GitHub Code</a>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+
+<script>
+function toggle(header) {
+  const content = header.nextElementSibling;
+  const icon = header.querySelector('.toggle-icon');
+  const isActive = content.classList.toggle('active');
+  icon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function copyCode(btn) {
+  const pre = btn.closest('.code-container').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+window.addEventListener('scroll', () => {
+  const st = document.getElementById('scrollTop');
+  st.classList.toggle('visible', window.scrollY > 300);
+});
+</script>
+</body>
+</html>
