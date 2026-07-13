@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Docker Commands: pull, run, exec, stop, start, rm, rmi | Cl0uDRec0N Lab Manual</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0d0d0d;
+    color: #a0a0a0;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+/* ── Header ── */
+.header {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    padding: 30px;
+    border-bottom: 3px solid #ffd93d;
+    position: relative;
+}
+.header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, #ffd93d 0%, #f7931e 100%);
+}
+.brand {
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffd93d;
+    text-shadow: 0 0 10px rgba(255,217,61,0.3);
+    letter-spacing: 2px;
+}
+.course-title { font-size: 32px; color: #ffffff; margin: 15px 0 10px; font-weight: 600; }
+.subtitle { font-size: 18px; color: #4ecdc4; font-weight: 300; }
+
+/* ── Meta cards ── */
+.lab-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 30px;
+    background-color: #151515;
+    border-bottom: 1px solid #2d2d2d;
+}
+.info-card {
+    background-color: #1f1f1f;
+    padding: 20px;
+    border-radius: 6px;
+    border-left: 4px solid #ffd93d;
+    transition: all .3s;
+}
+.info-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,217,61,.2); }
+.info-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.info-value { font-size: 18px; color: #ffffff; font-weight: 600; }
+
+/* ── Content ── */
+.content { padding: 30px; }
+.section { margin-bottom: 40px; }
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #2d2d2d 0%, #1f1f1f 100%);
+    padding: 15px 20px;
+    border-radius: 6px;
+    border-left: 4px solid #4ecdc4;
+    cursor: pointer;
+    transition: all .3s;
+    margin-bottom: 20px;
+}
+.section-header:hover {
+    background: linear-gradient(135deg, #353535 0%, #252525 100%);
+    border-left-color: #ffd93d;
+}
+.section-title { font-size: 24px; color: #ffffff; font-weight: 600; }
+.toggle-icon { font-size: 20px; color: #4ecdc4; transition: transform .3s; }
+
+.section-content { padding: 0 20px; max-height: 0; overflow: hidden; transition: max-height .5s ease; }
+.section-content.active { max-height: 90000px; padding: 20px; }
+
+/* ── Callout boxes ── */
+.tip-box, .warning-box, .info-box, .success-box, .danger-box {
+    padding: 20px;
+    border-radius: 6px;
+    margin: 20px 0;
+    border-left: 4px solid;
+    position: relative;
+    padding-left: 60px;
+}
+.tip-box     { background-color: rgba(78,205,196,.10); border-left-color: #4ecdc4; }
+.warning-box { background-color: rgba(255,193,7,.10);  border-left-color: #FFC107; }
+.info-box    { background-color: rgba(36,150,237,.10); border-left-color: #2496ED; }
+.success-box { background-color: rgba(46,213,115,.15); border-left-color: #2ed573; }
+.danger-box  { background-color: rgba(231,76,60,.15);  border-left-color: #e74c3c; }
+.box-icon { position: absolute; left: 20px; top: 20px; font-size: 24px; }
+.tip-box     .box-icon { color: #4ecdc4; }
+.warning-box .box-icon { color: #FFC107; }
+.info-box    .box-icon { color: #2496ED; }
+.success-box .box-icon { color: #2ed573; }
+.danger-box  .box-icon { color: #e74c3c; }
+.box-title { font-weight: 600; color: #ffffff; margin-bottom: 10px; font-size: 16px; }
+
+/* ── Code blocks ── */
+.code-container { position: relative; margin: 20px 0; }
+.code-header {
+    background-color: #0a0a0a;
+    padding: 10px 15px;
+    border-radius: 6px 6px 0 0;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #2d2d2d;
+}
+.code-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+.copy-btn {
+    background-color: #2d2d2d;
+    color: #4ecdc4;
+    border: 1px solid #4ecdc4;
+    padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all .3s;
+}
+.copy-btn:hover { background-color: #4ecdc4; color: #0d0d0d; }
+.copy-btn.copied { background-color: #2ed573; border-color: #2ed573; color: #fff; }
+pre {
+    background-color: #0a0a0a;
+    padding: 20px;
+    border-radius: 0 0 6px 6px;
+    overflow-x: auto; margin: 0;
+    border: 1px solid #2d2d2d; border-top: none;
+}
+code { font-family: 'Courier New', monospace; font-size: 14px; color: #e0e0e0; line-height: 1.6; }
+.sh-cmd     { color: #4ecdc4; }
+.sh-flag    { color: #ff6b35; }
+.sh-arg     { color: #ffd93d; }
+.sh-comment { color: #666; font-style: italic; }
+
+/* ── Tables ── */
+table { width: 100%; border-collapse: collapse; margin: 20px 0; background-color: #1f1f1f; border-radius: 6px; overflow: hidden; }
+th { background-color: #2d2d2d; color: #ffffff; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid #ffd93d; }
+td { padding: 15px; border-bottom: 1px solid #2d2d2d; color: #b0b0b0; }
+tr:hover { background-color: #252525; }
+
+/* ── Diagram container ── */
+.diagram-container {
+    background-color: #0a0a0a;
+    border: 2px solid #2d2d2d;
+    border-radius: 8px;
+    padding: 30px;
+    margin: 30px 0;
+    text-align: center;
+}
+.diagram-container svg { max-width: 100%; height: auto; }
+.diagram-caption {
+    font-size: 12px;
+    color: #555;
+    margin-top: 12px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: .04em;
+}
+
+/* ── Highlight box ── */
+.highlight-yellow {
+    background: linear-gradient(135deg, rgba(255,217,61,.15) 0%, rgba(255,217,61,.05) 100%);
+    padding: 20px; border-radius: 8px;
+    border: 2px solid #ffd93d; margin: 20px 0;
+}
+
+/* ── Step box ── */
+.step-box {
+    background-color: #1f1f1f;
+    border: 1px solid #2d2d2d;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all .3s;
+}
+.step-box:hover { border-color: #4ecdc4; box-shadow: 0 2px 8px rgba(78,205,196,.1); }
+.step-title { font-size: 20px; color: #ffffff; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; }
+.step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #ffd93d 0%, #f7931e 100%);
+    color: #0d0d0d; width: 34px; height: 34px; border-radius: 50%;
+    font-weight: bold; font-size: 16px; flex-shrink: 0;
+}
+.step-body { color: #b0b0b0; margin-left: 48px; line-height: 1.8; }
+.step-body code { font-family: 'Courier New', monospace; background: #0a0a0a; border: 1px solid #2d2d2d; padding: 1px 6px; border-radius: 3px; color: #ffd93d; font-size: 13px; }
+
+/* ── Mechanism / feature cards ── */
+.mech-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; margin: 20px 0; }
+.mech-card { background: #1f1f1f; border-radius: 8px; overflow: hidden; border-top: 3px solid; }
+.mech-card.http  { border-top-color: #2ed573; }
+.mech-card.tcp   { border-top-color: #FFC107; }
+.mech-card.exec  { border-top-color: #4ecdc4; }
+.mech-card.orange{ border-top-color: #f7931e; }
+.mech-card.purple{ border-top-color: #a78bfa; }
+.mech-card.red   { border-top-color: #e74c3c; }
+.mech-head { padding: 14px 18px; font-size: 15px; font-weight: 700; }
+.mech-card.http  .mech-head { color: #2ed573; }
+.mech-card.tcp   .mech-head { color: #FFC107; }
+.mech-card.exec  .mech-head { color: #4ecdc4; }
+.mech-card.orange .mech-head { color: #f7931e; }
+.mech-card.purple .mech-head { color: #a78bfa; }
+.mech-card.red   .mech-head { color: #e74c3c; }
+.mech-body { padding: 14px 18px; font-size: 13.5px; color: #b0b0b0; line-height: 1.75; }
+.mech-body code { font-family: 'Courier New', monospace; background: #0a0a0a; padding: 1px 5px; border-radius: 3px; color: #ffd93d; font-size: 12px; }
+.mech-tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; letter-spacing: .08em; margin-top: 10px; }
+.mech-card.http  .mech-tag { background: rgba(46,213,115,.15); color: #2ed573; border: 1px solid #2ed573; }
+.mech-card.tcp   .mech-tag { background: rgba(255,193,7,.15);  color: #FFC107;  border: 1px solid #FFC107; }
+.mech-card.exec  .mech-tag { background: rgba(78,205,196,.15); color: #4ecdc4;  border: 1px solid #4ecdc4; }
+.mech-card.orange .mech-tag{ background: rgba(247,147,30,.15); color: #f7931e;  border: 1px solid #f7931e; }
+.mech-card.purple .mech-tag{ background: rgba(167,139,250,.15);color: #a78bfa;  border: 1px solid #a78bfa; }
+.mech-card.red   .mech-tag { background: rgba(231,76,60,.15);  color: #e74c3c;  border: 1px solid #e74c3c; }
+
+/* ── Lab / knowledge-check ── */
+.lab-task {
+    background-color: #1f1f1f;
+    border: 1px dashed #4ecdc4;
+    border-radius: 6px;
+    padding: 18px 20px;
+    margin: 16px 0;
+}
+.lab-task .lab-task-label { font-size: 11px; color: #4ecdc4; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 700; }
+.answer-line { border-bottom: 1px solid #3d3d3d; height: 26px; margin-top: 10px; }
+.qnum { display:inline-flex; align-items:center; justify-content:center; background:#2d2d2d; color:#ffd93d; width:24px; height:24px; border-radius:50%; font-size:12px; font-weight:700; margin-right:10px; }
+
+/* ── Footer ── */
+.footer { background-color: #0a0a0a; padding: 30px; text-align: center; border-top: 3px solid #ffd93d; margin-top: 40px; }
+.footer-brand { font-size: 24px; font-weight: bold; color: #ffd93d; margin-bottom: 15px; letter-spacing: 2px; }
+.contact-info { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-top: 15px; }
+.contact-item { color: #4ecdc4; text-decoration: none; transition: color .3s; }
+.contact-item:hover { color: #ffd93d; }
+
+/* ── Scroll top ── */
+.scroll-top {
+    position: fixed; bottom: 30px; right: 30px;
+    background: linear-gradient(135deg, #ffd93d 0%, #f7931e 100%);
+    color: #0d0d0d; width: 50px; height: 50px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; opacity: 0; transition: opacity .3s;
+    box-shadow: 0 4px 12px rgba(255,217,61,.3); font-weight: bold; font-size: 18px;
+}
+.scroll-top.visible { opacity: 1; }
+.scroll-top:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(255,217,61,.4); }
+
+@media (max-width: 768px) {
+    body { padding: 10px; }
+    .course-title { font-size: 24px; }
+    .mech-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="header">
+    <div class="brand">Cl0uDRec0N</div>
+    <div class="course-title">Step 01 — Docker Commands: pull, run, exec, stop, start, rm, rmi</div>
+    <div class="subtitle">Hands-On Demo — Pulling an Image From Docker Hub &amp; Running It as a Container</div>
+  </div>
+
+  <!-- ═══ META ═══ -->
+  <div class="lab-info">
+    <div class="info-card"><div class="info-label">Module</div><div class="info-value">Docker Fundamentals</div></div>
+    <div class="info-card"><div class="info-label">Demo</div><div class="info-value">Step 01</div></div>
+    <div class="info-card"><div class="info-label">Focus</div><div class="info-value">Hands-On Commands</div></div>
+    <div class="info-card"><div class="info-label">Prerequisites</div><div class="info-value">Lecture 4 — Docker Architecture</div></div>
+    <div class="info-card"><div class="info-label">Commands Covered</div><div class="info-value">pull · run · exec · stop · start · rm · rmi</div></div>
+    <div class="info-card"><div class="info-label">Sample Image</div><div class="info-value">my-nginx (v1 → v4)</div></div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ SECTION 1 — LEARNING OBJECTIVES ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🎯 Learning Objectives</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+        <div class="tip-box">
+          <span class="box-icon">💡</span>
+          <div class="box-title">By the end of this demo, you should be able to:</div>
+          <p style="margin-bottom:6px;">1. Pull a specific version of a Docker image from Docker Hub onto your local desktop.</p>
+          <p style="margin-bottom:6px;">2. Run a container from a pulled image.</p>
+          <p style="margin-bottom:6px;">3. Connect into a running container using <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker exec</code>.</p>
+          <p style="margin-bottom:6px;">4. Stop and start an existing container without recreating it.</p>
+          <p>5. Remove a container and remove an image from your local desktop.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 2 — THE VISUAL WORKFLOW ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🖼️ The Workflow, Visually</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="highlight-yellow">
+          Docker Hub holds the <strong style="color:#ffd93d;">my-nginx</strong> image with several tagged versions — <strong style="color:#fff;">v1, v2, v3, v4</strong>. From the local Docker desktop, we <strong style="color:#4ecdc4;">pull</strong> one of those versions, then <strong style="color:#4ecdc4;">run</strong> it to create a container.
+        </div>
+
+        <!-- DIAGRAM 1 — pull & run workflow -->
+        <div class="diagram-container">
+          <svg viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg" style="max-width:760px;">
+            <defs>
+              <marker id="dc1" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#4ecdc4"/></marker>
+              <marker id="dc2" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#2ed573"/></marker>
+            </defs>
+
+            <text x="380" y="20" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="13" font-weight="700" fill="#ffd93d" letter-spacing="1">DOCKER HUB → LOCAL DESKTOP → RUNNING CONTAINER</text>
+
+            <!-- Docker Hub -->
+            <rect x="30" y="46" width="230" height="150" rx="10" fill="#16241a" stroke="#2ed573" stroke-width="2"/>
+            <text x="145" y="68" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="12" font-weight="700" fill="#2ed573">Docker Hub (registry)</text>
+            <text x="145" y="86" text-anchor="middle" font-family="Courier New,monospace" font-size="11" fill="#fff">my-nginx</text>
+
+            <rect x="50" y="96" width="80" height="30" rx="5" fill="#1f1f1f" stroke="#555"/>
+            <text x="90" y="116" text-anchor="middle" font-family="Courier New,monospace" font-size="10" fill="#ffd93d">v1</text>
+            <rect x="140" y="96" width="80" height="30" rx="5" fill="#1f1f1f" stroke="#555"/>
+            <text x="180" y="116" text-anchor="middle" font-family="Courier New,monospace" font-size="10" fill="#ffd93d">v2</text>
+            <rect x="50" y="134" width="80" height="30" rx="5" fill="#1f1f1f" stroke="#555"/>
+            <text x="90" y="154" text-anchor="middle" font-family="Courier New,monospace" font-size="10" fill="#ffd93d">v3</text>
+            <rect x="140" y="134" width="80" height="30" rx="5" fill="#1f1f1f" stroke="#555"/>
+            <text x="180" y="154" text-anchor="middle" font-family="Courier New,monospace" font-size="10" fill="#ffd93d">v4</text>
+
+            <line x1="260" y1="120" x2="320" y2="120" stroke="#4ecdc4" stroke-width="2" marker-end="url(#dc1)"/>
+            <text x="290" y="110" text-anchor="middle" font-family="Courier New,monospace" font-size="10" fill="#4ecdc4">docker pull</text>
+
+            <!-- Local desktop -->
+            <rect x="326" y="46" width="200" height="150" rx="10" fill="#111" stroke="#2d2d2d" stroke-width="1.5"/>
+            <text x="426" y="68" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="12" font-weight="700" fill="#b0b0b0">Local Docker Desktop</text>
+
+            <rect x="350" y="86" width="150" height="40" rx="6" fill="#1c2333" stroke="#2496ED" stroke-width="1.5"/>
+            <text x="425" y="110" text-anchor="middle" font-family="Courier New,monospace" font-size="11" fill="#2496ED">my-nginx:v2 (image)</text>
+
+            <line x1="425" y1="126" x2="425" y2="150" stroke="#2ed573" stroke-width="2" marker-end="url(#dc2)"/>
+            <text x="470" y="142" text-anchor="middle" font-family="Courier New,monospace" font-size="10" fill="#2ed573">docker run</text>
+
+            <rect x="350" y="152" width="150" height="34" rx="6" fill="#16241a" stroke="#2ed573" stroke-width="1.5"/>
+            <text x="425" y="173" text-anchor="middle" font-family="Courier New,monospace" font-size="10" fill="#2ed573">container: web1</text>
+
+            <!-- container detail -->
+            <rect x="552" y="90" width="178" height="106" rx="10" fill="#1f1f1f" stroke="#4ecdc4" stroke-width="2"/>
+            <text x="641" y="112" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" font-weight="700" fill="#4ecdc4">Running Container</text>
+            <text x="641" y="134" text-anchor="middle" font-family="Courier New,monospace" font-size="10" fill="#b0b0b0">docker exec → shell in</text>
+            <text x="641" y="152" text-anchor="middle" font-family="Courier New,monospace" font-size="10" fill="#b0b0b0">docker stop / start</text>
+            <text x="641" y="170" text-anchor="middle" font-family="Courier New,monospace" font-size="10" fill="#b0b0b0">docker rm → remove it</text>
+
+            <line x1="500" y1="169" x2="550" y2="140" stroke="#4ecdc4" stroke-width="1.5" stroke-dasharray="3,2" marker-end="url(#dc1)"/>
+          </svg>
+          <div class="diagram-caption">Diagram 1 — Pull a tagged image from Docker Hub, run it to create a container, then manage that container's lifecycle.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 3 — COMMAND REFERENCE ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">⌨️ Command Reference</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> docker pull — download an image</div>
+          <div class="step-body">
+            Pulls a tagged Docker image from Docker Hub (or your configured registry) onto your local desktop.
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> pull <span class="sh-arg">my-nginx:v2</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">2</span> docker run — create &amp; start a container from an image</div>
+          <div class="step-body">
+            Creates a new container from the pulled image and starts it. <code>-d</code> runs it in the background, <code>--name</code> gives it a friendly name, <code>-p</code> maps a host port to a container port.
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> run <span class="sh-flag">-d --name</span> <span class="sh-arg">web1</span> <span class="sh-flag">-p</span> <span class="sh-arg">8080:80</span> <span class="sh-arg">my-nginx:v2</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">3</span> docker exec — connect into a running container</div>
+          <div class="step-body">
+            Opens an interactive shell inside the running container so you can inspect it from the inside. <code>-i</code> keeps STDIN open, <code>-t</code> allocates a terminal.
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> exec <span class="sh-flag">-it</span> <span class="sh-arg">web1</span> <span class="sh-arg">bash</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">4</span> docker stop / docker start — stop &amp; restart a container</div>
+          <div class="step-body">
+            <code>stop</code> gracefully stops a running container without deleting it; <code>start</code> brings that same container back up.
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> stop <span class="sh-arg">web1</span>
+<span class="sh-cmd">docker</span> start <span class="sh-arg">web1</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">5</span> docker rm — remove a container</div>
+          <div class="step-body">
+            Deletes a stopped container. Add <code>-f</code> to force-remove a container that's still running.
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> stop <span class="sh-arg">web1</span>
+<span class="sh-cmd">docker</span> rm <span class="sh-arg">web1</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">6</span> docker rmi — remove an image</div>
+          <div class="step-body">
+            Removes a Docker image from your local desktop. All containers created from that image must be removed first.
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> rmi <span class="sh-arg">my-nginx:v2</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <table>
+          <thead><tr><th>Command</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#ffd93d;">docker pull</td><td>Download a Docker image from a registry (e.g. Docker Hub) to the local desktop.</td></tr>
+            <tr><td style="color:#ffd93d;">docker run</td><td>Create and start a container from a local image.</td></tr>
+            <tr><td style="color:#ffd93d;">docker exec</td><td>Run a command (often a shell) inside an already-running container.</td></tr>
+            <tr><td style="color:#ffd93d;">docker stop</td><td>Gracefully stop a running container without deleting it.</td></tr>
+            <tr><td style="color:#ffd93d;">docker start</td><td>Start a container that was previously stopped.</td></tr>
+            <tr><td style="color:#ffd93d;">docker rm</td><td>Remove a (stopped) container from the local desktop.</td></tr>
+            <tr><td style="color:#ffd93d;">docker rmi</td><td>Remove a Docker image from the local desktop.</td></tr>
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 4 — GUIDED LAB EXERCISE ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🧪 Guided Lab Exercise</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="info-box">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-title">Follow Along</div>
+          Run each command below in order on your own machine. Substitute <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">my-nginx:v2</code> with an image you have access to (e.g. the public <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">nginx</code> image) if you don't have a private one.
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Task 1 — Pull the image</div>
+          <span class="qnum">1</span>Run <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker pull</code> and paste the command you used, and the final line of output.
+          <div class="answer-line"></div><div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Task 2 — Run a container</div>
+          <span class="qnum">2</span>Run <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker run</code> to create and start a container. What container ID or name did Docker assign?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Task 3 — Exec into the container</div>
+          <span class="qnum">3</span>Use <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker exec</code> to open a shell inside the container. What command did you run once inside?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Task 4 — Stop and start the container</div>
+          <span class="qnum">4</span>Stop the container, verify with <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker ps</code> that it's no longer running, then start it again.
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Task 5 — Remove the container and image</div>
+          <span class="qnum">5</span>Stop the container, remove it with <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker rm</code>, then remove the image with <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker rmi</code>. What error would you get if you tried <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker rmi</code> before removing the container?
+          <div class="answer-line"></div><div class="answer-line"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 5 — SUMMARY ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">📋 Summary &amp; Coming Up Next</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="success-box">
+          <span class="box-icon">✅</span>
+          <div class="box-title">Summary — The Container Lifecycle</div>
+          <p style="margin-bottom:10px;"><strong>pull</strong> gets the image → <strong>run</strong> creates and starts a container from it → <strong>exec</strong> lets you work inside it while it runs.</p>
+          <p><strong>stop</strong> / <strong>start</strong> pause and resume a container without losing it → <strong>rm</strong> deletes the container → <strong>rmi</strong> deletes the underlying image once no containers depend on it.</p>
+        </div>
+
+        <div class="tip-box">
+          <span class="box-icon">💡</span>
+          <div class="box-title">Coming Up Next</div>
+          The next demo walks through each of these commands live, pulling a real tagged nginx image and running it end-to-end.
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <div class="footer">
+    <div class="footer-brand">Cl0uDRec0N</div>
+    <div>Kubernetes &amp; Docker Training — Cloud Technology Solutions</div>
+    <div class="contact-info">
+      <a class="contact-item" href="mailto:cyb3rlabs@hotmail.com">📧 cyb3rlabs@hotmail.com</a>
+      <a class="contact-item" href="#">📱 WhatsApp: +1 431-337-3360</a>
+      <a class="contact-item" href="https://github.com/ComputerTrainer0/Mastering-Docker-Kube" target="_blank">💻 GitHub Code</a>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+
+<script>
+function toggle(header) {
+  const content = header.nextElementSibling;
+  const icon = header.querySelector('.toggle-icon');
+  const isActive = content.classList.toggle('active');
+  icon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function copyCode(btn) {
+  const pre = btn.closest('.code-container').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+window.addEventListener('scroll', () => {
+  const st = document.getElementById('scrollTop');
+  st.classList.toggle('visible', window.scrollY > 300);
+});
+</script>
+</body>
+</html>
