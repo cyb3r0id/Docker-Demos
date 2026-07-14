@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dockerfile LABEL Instruction | Cl0uDRec0N Lab Manual</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0d0d0d;
+    color: #a0a0a0;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+/* ── Header ── */
+.header {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    padding: 30px;
+    border-bottom: 3px solid #ffd93d;
+    position: relative;
+}
+.header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, #ffd93d 0%, #f7931e 100%);
+}
+.brand {
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffd93d;
+    text-shadow: 0 0 10px rgba(255,217,61,0.3);
+    letter-spacing: 2px;
+}
+.course-title { font-size: 32px; color: #ffffff; margin: 15px 0 10px; font-weight: 600; }
+.subtitle { font-size: 18px; color: #4ecdc4; font-weight: 300; }
+
+/* ── Meta cards ── */
+.lab-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 30px;
+    background-color: #151515;
+    border-bottom: 1px solid #2d2d2d;
+}
+.info-card {
+    background-color: #1f1f1f;
+    padding: 20px;
+    border-radius: 6px;
+    border-left: 4px solid #ffd93d;
+    transition: all .3s;
+}
+.info-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,217,61,.2); }
+.info-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.info-value { font-size: 18px; color: #ffffff; font-weight: 600; }
+
+/* ── Content ── */
+.content { padding: 30px; }
+.section { margin-bottom: 40px; }
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #2d2d2d 0%, #1f1f1f 100%);
+    padding: 15px 20px;
+    border-radius: 6px;
+    border-left: 4px solid #4ecdc4;
+    cursor: pointer;
+    transition: all .3s;
+    margin-bottom: 20px;
+}
+.section-header:hover {
+    background: linear-gradient(135deg, #353535 0%, #252525 100%);
+    border-left-color: #ffd93d;
+}
+.section-title { font-size: 24px; color: #ffffff; font-weight: 600; }
+.toggle-icon { font-size: 20px; color: #4ecdc4; transition: transform .3s; }
+
+.section-content { padding: 0 20px; max-height: 0; overflow: hidden; transition: max-height .5s ease; }
+.section-content.active { max-height: 90000px; padding: 20px; }
+
+/* ── Callout boxes ── */
+.tip-box, .warning-box, .info-box, .success-box, .danger-box {
+    padding: 20px;
+    border-radius: 6px;
+    margin: 20px 0;
+    border-left: 4px solid;
+    position: relative;
+    padding-left: 60px;
+}
+.tip-box     { background-color: rgba(78,205,196,.10); border-left-color: #4ecdc4; }
+.warning-box { background-color: rgba(255,193,7,.10);  border-left-color: #FFC107; }
+.info-box    { background-color: rgba(36,150,237,.10); border-left-color: #2496ED; }
+.success-box { background-color: rgba(46,213,115,.15); border-left-color: #2ed573; }
+.danger-box  { background-color: rgba(231,76,60,.15);  border-left-color: #e74c3c; }
+.box-icon { position: absolute; left: 20px; top: 20px; font-size: 24px; }
+.tip-box     .box-icon { color: #4ecdc4; }
+.warning-box .box-icon { color: #FFC107; }
+.info-box    .box-icon { color: #2496ED; }
+.success-box .box-icon { color: #2ed573; }
+.danger-box  .box-icon { color: #e74c3c; }
+.box-title { font-weight: 600; color: #ffffff; margin-bottom: 10px; font-size: 16px; }
+
+/* ── Code blocks ── */
+.code-container { position: relative; margin: 20px 0; }
+.code-header {
+    background-color: #0a0a0a;
+    padding: 10px 15px;
+    border-radius: 6px 6px 0 0;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #2d2d2d;
+}
+.code-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+.copy-btn {
+    background-color: #2d2d2d;
+    color: #4ecdc4;
+    border: 1px solid #4ecdc4;
+    padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all .3s;
+}
+.copy-btn:hover { background-color: #4ecdc4; color: #0d0d0d; }
+.copy-btn.copied { background-color: #2ed573; border-color: #2ed573; color: #fff; }
+pre {
+    background-color: #0a0a0a;
+    padding: 20px;
+    border-radius: 0 0 6px 6px;
+    overflow-x: auto; margin: 0;
+    border: 1px solid #2d2d2d; border-top: none;
+}
+code { font-family: 'Courier New', monospace; font-size: 14px; color: #e0e0e0; line-height: 1.6; }
+.sh-cmd      { color: #4ecdc4; }
+.sh-flag     { color: #ff6b35; }
+.sh-arg      { color: #ffd93d; }
+.sh-comment  { color: #666; font-style: italic; }
+.sh-out      { color: #6b7280; }
+.df-instr    { color: #a78bfa; font-weight: 700; }
+.df-arg      { color: #ffd93d; }
+.df-comment  { color: #666; font-style: italic; }
+
+/* ── Tables ── */
+table { width: 100%; border-collapse: collapse; margin: 20px 0; background-color: #1f1f1f; border-radius: 6px; overflow: hidden; }
+th { background-color: #2d2d2d; color: #ffffff; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid #ffd93d; }
+td { padding: 15px; border-bottom: 1px solid #2d2d2d; color: #b0b0b0; }
+tr:hover { background-color: #252525; }
+
+/* ── Diagram container ── */
+.diagram-container {
+    background-color: #0a0a0a;
+    border: 2px solid #2d2d2d;
+    border-radius: 8px;
+    padding: 30px;
+    margin: 30px 0;
+    text-align: center;
+}
+.diagram-container svg { max-width: 100%; height: auto; }
+.diagram-caption {
+    font-size: 12px;
+    color: #555;
+    margin-top: 12px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: .04em;
+}
+
+/* ── Highlight box ── */
+.highlight-yellow {
+    background: linear-gradient(135deg, rgba(255,217,61,.15) 0%, rgba(255,217,61,.05) 100%);
+    padding: 20px; border-radius: 8px;
+    border: 2px solid #ffd93d; margin: 20px 0;
+}
+
+/* ── Step box ── */
+.step-box {
+    background-color: #1f1f1f;
+    border: 1px solid #2d2d2d;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all .3s;
+}
+.step-box:hover { border-color: #4ecdc4; box-shadow: 0 2px 8px rgba(78,205,196,.1); }
+.step-title { font-size: 20px; color: #ffffff; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; }
+.step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #ffd93d 0%, #f7931e 100%);
+    color: #0d0d0d; width: 34px; height: 34px; border-radius: 50%;
+    font-weight: bold; font-size: 16px; flex-shrink: 0;
+}
+.step-body { color: #b0b0b0; margin-left: 48px; line-height: 1.8; }
+.step-body code { font-family: 'Courier New', monospace; background: #0a0a0a; border: 1px solid #2d2d2d; padding: 1px 6px; border-radius: 3px; color: #ffd93d; font-size: 13px; }
+
+/* ── Comparison grid ── */
+.cmp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+.cmp-card { background-color: #1f1f1f; border-radius: 8px; overflow: hidden; }
+.cmp-head { padding: 14px 20px; font-size: 16px; font-weight: 700; letter-spacing: .05em; }
+.cmp-head.red  { background: rgba(231,76,60,.2);  color: #e74c3c; border-bottom: 2px solid #e74c3c; }
+.cmp-head.blue { background: rgba(36,150,237,.2); color: #2496ED; border-bottom: 2px solid #2496ED; }
+.cmp-head.green { background: rgba(46,213,115,.2); color: #2ed573; border-bottom: 2px solid #2ed573; }
+.cmp-body { padding: 16px 20px; }
+.cmp-row { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid #2d2d2d; font-size: 14px; color: #b0b0b0; }
+.cmp-row:last-child { border-bottom: none; }
+.cmp-row .icon { flex-shrink: 0; width: 20px; }
+
+/* ── Lab / knowledge-check ── */
+.lab-task {
+    background-color: #1f1f1f;
+    border: 1px dashed #4ecdc4;
+    border-radius: 6px;
+    padding: 18px 20px;
+    margin: 16px 0;
+}
+.lab-task .lab-task-label { font-size: 11px; color: #4ecdc4; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 700; }
+.answer-line { border-bottom: 1px solid #3d3d3d; height: 26px; margin-top: 10px; }
+.qnum { display:inline-flex; align-items:center; justify-content:center; background:#2d2d2d; color:#ffd93d; width:24px; height:24px; border-radius:50%; font-size:12px; font-weight:700; margin-right:10px; }
+
+/* ── Footer ── */
+.footer { background-color: #0a0a0a; padding: 30px; text-align: center; border-top: 3px solid #ffd93d; margin-top: 40px; }
+.footer-brand { font-size: 24px; font-weight: bold; color: #ffd93d; margin-bottom: 15px; letter-spacing: 2px; }
+.contact-info { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-top: 15px; }
+.contact-item { color: #4ecdc4; text-decoration: none; transition: color .3s; }
+.contact-item:hover { color: #ffd93d; }
+
+/* ── Scroll top ── */
+.scroll-top {
+    position: fixed; bottom: 30px; right: 30px;
+    background: linear-gradient(135deg, #ffd93d 0%, #f7931e 100%);
+    color: #0d0d0d; width: 50px; height: 50px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; opacity: 0; transition: opacity .3s;
+    box-shadow: 0 4px 12px rgba(255,217,61,.3); font-weight: bold; font-size: 18px;
+}
+.scroll-top.visible { opacity: 1; }
+.scroll-top:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(255,217,61,.4); }
+
+@media (max-width: 768px) {
+    body { padding: 10px; }
+    .course-title { font-size: 24px; }
+    .cmp-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="header">
+    <div class="brand">Cl0uDRec0N</div>
+    <div class="course-title">Dockerfile LABEL Instruction</div>
+    <div class="subtitle">Custom Labels · OCI Labels · docker image inspect · docker inspect</div>
+  </div>
+
+  <!-- ═══ META ═══ -->
+  <div class="lab-info">
+    <div class="info-card"><div class="info-label">Module</div><div class="info-value">Dockerfile Fundamentals</div></div>
+    <div class="info-card"><div class="info-label">Demo</div><div class="info-value">Steps 01–02 / Section 04</div></div>
+    <div class="info-card"><div class="info-label">Focus</div><div class="info-value">Theory + Hands-On</div></div>
+    <div class="info-card"><div class="info-label">Prerequisites</div><div class="info-value">Step 01 — Intro to Dockerfiles</div></div>
+    <div class="info-card"><div class="info-label">Base Image</div><div class="info-value">nginx:alpine-slim</div></div>
+    <div class="info-card"><div class="info-label">Next Up</div><div class="info-value">Demo 5 — ADD Instruction</div></div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ SECTION 1 — LEARNING OBJECTIVES ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🎯 Learning Objectives</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+        <div class="tip-box">
+          <span class="box-icon">💡</span>
+          <div class="box-title">By the end of this demo, you should be able to:</div>
+          <p style="margin-bottom:6px;">1. Explain what the <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">LABEL</code> instruction does and how label inheritance/override works.</p>
+          <p style="margin-bottom:6px;">2. Distinguish custom labels from standard OCI (Open Container Initiative) labels.</p>
+          <p style="margin-bottom:6px;">3. Build a small nginx-based image using an alpine-slim base and see how base image choice affects size.</p>
+          <p style="margin-bottom:6px;">4. Verify labels on an image with <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker image inspect</code>.</p>
+          <p>5. Verify labels and other runtime details on a container with <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker inspect</code>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 2 — WHAT IS THE LABEL INSTRUCTION ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🏷️ What Is the LABEL Instruction?</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="highlight-yellow">
+          <strong style="color:#ffd93d;">Definition:</strong> <code style="color:#fff;">LABEL</code> adds <strong style="color:#fff;">metadata</strong> to a Docker image. An image can carry <strong style="color:#4ecdc4;">more than one</strong> label.
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> Labels are inherited from the base image</div>
+          <div class="step-body">Whatever labels exist in your <code>FROM</code> base image are carried forward into your custom image automatically — just like the earlier demo where <code>FROM nginx</code> brought nginx's own image contents along with it.</div>
+        </div>
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">2</span> Labels can be overridden</div>
+          <div class="step-body">If a label already exists (inherited from the base image) but you set it again with a different value, the <strong style="color:#fff;">most recently applied value wins</strong> at build time.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 3 — CUSTOM LABELS VS OCI LABELS ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">📐 Custom Labels vs OCI Labels</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="cmp-grid">
+          <div class="cmp-card">
+            <div class="cmp-head blue">Custom Labels</div>
+            <div class="cmp-body">
+              <div class="cmp-row"><span class="icon">🏷️</span> Simple key=value pairs you make up yourself</div>
+              <div class="cmp-row"><span class="icon">⚠️</span> <code style="background:#0a0a0a;padding:1px 5px;border-radius:3px;color:#ffd93d;">maintainer</code> is a common one, but is <strong>deprecated</strong></div>
+              <div class="cmp-row"><span class="icon">📄</span> e.g. <code style="background:#0a0a0a;padding:1px 5px;border-radius:3px;color:#ffd93d;">version</code>, <code style="background:#0a0a0a;padding:1px 5px;border-radius:3px;color:#ffd93d;">description</code></div>
+            </div>
+          </div>
+          <div class="cmp-card">
+            <div class="cmp-head green">OCI Labels (recommended)</div>
+            <div class="cmp-body">
+              <div class="cmp-row"><span class="icon">✅</span> Standardized under <code style="background:#0a0a0a;padding:1px 5px;border-radius:3px;color:#ffd93d;">org.opencontainers.image.*</code></div>
+              <div class="cmp-row"><span class="icon">📋</span> author, title, description, version, revision, created, url, source, documentation, vendor, licenses</div>
+              <div class="cmp-row"><span class="icon">🌍</span> Understood consistently across tools &amp; registries</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-title">Why OCI Labels Are Preferred</div>
+          <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">maintainer</code> is still widely used out of habit, but it's deprecated. The recommended approach is the <strong style="color:#ffd93d;">Open Container Initiative (OCI)</strong> label set — a standardized naming convention every OCI-compliant tool understands the same way.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 4 — THE DOCKERFILE ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🧱 The Dockerfile — Labels Demo</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="highlight-yellow">
+          The base image for this demo is <strong style="color:#ffd93d;">nginx:alpine-slim</strong> — a much smaller variant of nginx than the plain <code style="color:#fff;">nginx</code> image used in the previous demo.
+        </div>
+
+        <div class="code-container">
+          <div class="code-header"><span class="code-label">Dockerfile</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="df-instr">FROM</span> <span class="df-arg">nginx:alpine-slim</span>
+
+<span class="df-comment"># Custom labels</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">maintainer="yourname@example.com"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">version="1.0"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">description="Demo image for Dockerfile LABEL instruction"</span>
+
+<span class="df-comment"># Standard OCI (Open Container Initiative) labels</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.authors="Your Name"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.title="Demo4 Dockerfile Labels"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.description="nginx alpine-slim image with custom and OCI labels"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.version="1.0"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.revision="1"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.created="2026-07-13"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.url="https://github.com/stacksimplify/my-nginx"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.source="https://github.com/stacksimplify/my-nginx/Dockerfile"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.documentation="https://github.com/stacksimplify/my-nginx/README.md"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.vendor="StackSimplify"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.licenses="Apache-2.0"</span>
+
+<span class="df-instr">COPY</span> <span class="df-arg">index.html /usr/share/nginx/html</span></code></pre>
+        </div>
+
+        <div class="info-box">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-title">What Each OCI Field Means</div>
+          <p style="margin-bottom:6px;"><strong style="color:#ffd93d;">authors</strong> — who wrote it. <strong style="color:#ffd93d;">title / description</strong> — what it is. <strong style="color:#ffd93d;">version / revision</strong> — which build. <strong style="color:#ffd93d;">created</strong> — build date.</p>
+          <p><strong style="color:#ffd93d;">url / source</strong> — where to find the project / Dockerfile. <strong style="color:#ffd93d;">documentation</strong> — where to read more. <strong style="color:#ffd93d;">vendor</strong> — who publishes it. <strong style="color:#ffd93d;">licenses</strong> — under what license.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 5 — BUILD & RUN ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🔨 Build &amp; Run the Image</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> Clean up first (good habit between demos)</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> rm <span class="sh-flag">-f</span> <span class="sh-arg">myapp1</span>
+<span class="sh-cmd">docker</span> rmi <span class="sh-flag">$(</span><span class="sh-cmd">docker</span> images <span class="sh-flag">-q)</span></code></pre>
+            </div>
+            This removes any leftover container and every local image, giving you a clean slate for this demo.
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">2</span> Build the image</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> build <span class="sh-flag">-t</span> <span class="sh-arg">demo4-dockerfile-labels:v1</span> .</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">3</span> Compare the image size</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> images</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <table>
+          <thead><tr><th>Image</th><th>Size</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#ffd93d;">nginx (full)</td><td>~279 MB</td></tr>
+            <tr><td style="color:#ffd93d;">demo4-dockerfile-labels:v1 (nginx:alpine-slim)</td><td>~19.2 MB</td></tr>
+          </tbody>
+        </table>
+
+        <div class="tip-box">
+          <span class="box-icon">💡</span>
+          <div class="box-title">Image Size Matters</div>
+          Choosing an <strong style="color:#ffd93d;">alpine-slim</strong> base instead of the full nginx image cuts the image size dramatically — from ~279 MB down to ~19.2 MB — because it strips out tooling the app doesn't actually need. Choose your base image based on what your application really requires.
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">4</span> Run a container from it</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> run <span class="sh-flag">--name</span> <span class="sh-arg">my-labels-demo</span> <span class="sh-flag">-p</span> <span class="sh-arg">8080:80</span> <span class="sh-flag">-d</span> <span class="sh-arg">demo4-dockerfile-labels:v1</span></code></pre>
+            </div>
+            Visit <code>http://localhost:8080</code> to confirm the custom index.html loads.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 6 — VERIFYING IMAGE LABELS ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🔍 Verifying Labels — docker image inspect</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> Full image inspect</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> image inspect <span class="sh-arg">demo4-dockerfile-labels:v1</span></code></pre>
+            </div>
+            Returns a large JSON document: architecture (<code>amd64</code>), OS (<code>linux</code>), and — scrolling up — a <strong style="color:#fff;">Labels</strong> section listing every label you set: description, maintainer, image authors, created date, documentation, and more.
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">2</span> Print only the labels</div>
+          <div class="step-body">
+            Use <code>--format</code> to filter down to just the labels section:
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> image inspect <span class="sh-flag">--format</span> <span class="sh-arg">'{{json .Config.Labels}}'</span> <span class="sh-arg">demo4-dockerfile-labels:v1</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">3</span> Pretty-print with jq (optional)</div>
+          <div class="step-body">
+            The raw JSON from the previous command isn't pretty-printed. Pipe it through <code>jq</code> for readable, indented output:
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> image inspect <span class="sh-flag">--format</span> <span class="sh-arg">'{{json .Config.Labels}}'</span> <span class="sh-arg">demo4-dockerfile-labels:v1</span> <span class="sh-flag">|</span> jq</code></pre>
+            </div>
+            <code>jq</code> is entirely optional — it just formats the JSON nicely. Installation steps differ by OS (macOS, Debian/Linux, Windows) and are provided separately in the course reference material; it isn't required to complete this demo.
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">4</span> Get just the creation date</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> image inspect <span class="sh-flag">--format</span> <span class="sh-arg">'{{.Created}}'</span> <span class="sh-arg">demo4-dockerfile-labels:v1</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 7 — CONTAINER INSPECT ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">📦 Verifying the Container — docker inspect</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="highlight-yellow">
+          Labels aren't only on the image — since the container was created <em>from</em> that image, the same labels show up when you inspect the <strong style="color:#ffd93d;">container</strong> too.
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> Full container inspect</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> inspect <span class="sh-arg">my-labels-demo</span></code></pre>
+            </div>
+            Returns detailed JSON: DNS names, IP address, gateway, MAC address, mounted volumes, labels, and much more.
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">2</span> Get just the container's IP address</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> inspect <span class="sh-flag">--format</span> <span class="sh-arg">'{{.NetworkSettings.IPAddress}}'</span> <span class="sh-arg">my-labels-demo</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">3</span> Get just the container's status</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> inspect <span class="sh-flag">--format</span> <span class="sh-arg">'{{.State.Status}}'</span> <span class="sh-arg">my-labels-demo</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">4</span> Get the exposed ports</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> inspect <span class="sh-flag">--format</span> <span class="sh-arg">'{{json .Config.ExposedPorts}}'</span> <span class="sh-arg">my-labels-demo</span></code></pre>
+            </div>
+            Since the container port used was <code>80</code>, that's the value you'll see here.
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">5</span> Get full network settings</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> inspect <span class="sh-flag">--format</span> <span class="sh-arg">'{{json .NetworkSettings}}'</span> <span class="sh-arg">my-labels-demo</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <table>
+          <thead><tr><th>Command</th><th>Inspects</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#ffd93d;">docker image inspect &lt;image&gt;</td><td>An image — its labels, layers, architecture, and config.</td></tr>
+            <tr><td style="color:#ffd93d;">docker inspect &lt;container&gt;</td><td>A container — its network settings, state, mounts, and inherited labels.</td></tr>
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 8 — CLEANUP & SUMMARY ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🧹 Cleanup &amp; Summary</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> Remove the container</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> rm <span class="sh-flag">-f</span> <span class="sh-arg">my-labels-demo</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">2</span> Remove the image</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> rmi <span class="sh-arg">demo4-dockerfile-labels:v1</span></code></pre>
+            </div>
+            Leaving the local desktop clean and ready for the next demo.
+          </div>
+        </div>
+
+        <div class="success-box">
+          <span class="box-icon">✅</span>
+          <div class="box-title">Summary</div>
+          <p style="margin-bottom:10px;"><strong>LABEL</strong> attaches metadata to an image; labels inherit from the base image and later values override earlier ones.</p>
+          <p style="margin-bottom:10px;">Prefer standardized <strong>OCI labels</strong> (<code>org.opencontainers.image.*</code>) over ad-hoc custom labels like the deprecated <code>maintainer</code>.</p>
+          <p><strong>docker image inspect</strong> verifies labels on the image; <strong>docker inspect</strong> verifies them (and much more) on the running container.</p>
+        </div>
+
+        <div class="tip-box">
+          <span class="box-icon">💡</span>
+          <div class="box-title">Coming Up Next</div>
+          The next demo covers the <strong>ADD</strong> instruction — including fetching content from a URL, something <code>COPY</code> can't do.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 9 — LAB REFLECTION ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">📝 Lab Reflection — Knowledge Check</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 1</div>
+          <span class="qnum">1</span>If a base image already defines a label and your Dockerfile sets the same label to a different value, which value wins?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 2</div>
+          <span class="qnum">2</span>Why are OCI labels (<code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">org.opencontainers.image.*</code>) preferred over ad-hoc custom labels?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 3</div>
+          <span class="qnum">3</span>Why was the resulting image only ~19.2 MB instead of ~279 MB?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 4</div>
+          <span class="qnum">4</span>What's the difference between <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker image inspect</code> and <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker inspect</code>?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Task 5 — Try it yourself</div>
+          <span class="qnum">5</span>Build the labels image, then run <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker image inspect --format '{{json .Config.Labels}}'</code> against it. Paste at least three labels you see in the output.
+          <div class="answer-line"></div><div class="answer-line"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <div class="footer">
+    <div class="footer-brand">Cl0uDRec0N</div>
+    <div>Kubernetes &amp; Docker Training — Cloud Technology Solutions</div>
+    <div class="contact-info">
+      <a class="contact-item" href="mailto:cyb3rlabs@hotmail.com">📧 cyb3rlabs@hotmail.com</a>
+      <a class="contact-item" href="#">📱 WhatsApp: +1 431-337-3360</a>
+      <a class="contact-item" href="https://github.com/ComputerTrainer0/Mastering-Docker-Kube" target="_blank">💻 GitHub Code</a>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+
+<script>
+function toggle(header) {
+  const content = header.nextElementSibling;
+  const icon = header.querySelector('.toggle-icon');
+  const isActive = content.classList.toggle('active');
+  icon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function copyCode(btn) {
+  const pre = btn.closest('.code-container').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+window.addEventListener('scroll', () => {
+  const st = document.getElementById('scrollTop');
+  st.classList.toggle('visible', window.scrollY > 300);
+});
+</script>
+</body>
+</html>
