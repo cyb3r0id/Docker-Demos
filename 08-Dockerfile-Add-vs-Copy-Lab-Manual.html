@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dockerfile ADD vs COPY | Cl0uDRec0N Lab Manual</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0d0d0d;
+    color: #a0a0a0;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+/* ── Header ── */
+.header {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    padding: 30px;
+    border-bottom: 3px solid #ffd93d;
+    position: relative;
+}
+.header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, #ffd93d 0%, #f7931e 100%);
+}
+.brand {
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffd93d;
+    text-shadow: 0 0 10px rgba(255,217,61,0.3);
+    letter-spacing: 2px;
+}
+.course-title { font-size: 32px; color: #ffffff; margin: 15px 0 10px; font-weight: 600; }
+.subtitle { font-size: 18px; color: #4ecdc4; font-weight: 300; }
+
+/* ── Meta cards ── */
+.lab-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 30px;
+    background-color: #151515;
+    border-bottom: 1px solid #2d2d2d;
+}
+.info-card {
+    background-color: #1f1f1f;
+    padding: 20px;
+    border-radius: 6px;
+    border-left: 4px solid #ffd93d;
+    transition: all .3s;
+}
+.info-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,217,61,.2); }
+.info-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.info-value { font-size: 18px; color: #ffffff; font-weight: 600; }
+
+/* ── Content ── */
+.content { padding: 30px; }
+.section { margin-bottom: 40px; }
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #2d2d2d 0%, #1f1f1f 100%);
+    padding: 15px 20px;
+    border-radius: 6px;
+    border-left: 4px solid #4ecdc4;
+    cursor: pointer;
+    transition: all .3s;
+    margin-bottom: 20px;
+}
+.section-header:hover {
+    background: linear-gradient(135deg, #353535 0%, #252525 100%);
+    border-left-color: #ffd93d;
+}
+.section-title { font-size: 24px; color: #ffffff; font-weight: 600; }
+.toggle-icon { font-size: 20px; color: #4ecdc4; transition: transform .3s; }
+
+.section-content { padding: 0 20px; max-height: 0; overflow: hidden; transition: max-height .5s ease; }
+.section-content.active { max-height: 90000px; padding: 20px; }
+
+/* ── Callout boxes ── */
+.tip-box, .warning-box, .info-box, .success-box, .danger-box {
+    padding: 20px;
+    border-radius: 6px;
+    margin: 20px 0;
+    border-left: 4px solid;
+    position: relative;
+    padding-left: 60px;
+}
+.tip-box     { background-color: rgba(78,205,196,.10); border-left-color: #4ecdc4; }
+.warning-box { background-color: rgba(255,193,7,.10);  border-left-color: #FFC107; }
+.info-box    { background-color: rgba(36,150,237,.10); border-left-color: #2496ED; }
+.success-box { background-color: rgba(46,213,115,.15); border-left-color: #2ed573; }
+.danger-box  { background-color: rgba(231,76,60,.15);  border-left-color: #e74c3c; }
+.box-icon { position: absolute; left: 20px; top: 20px; font-size: 24px; }
+.tip-box     .box-icon { color: #4ecdc4; }
+.warning-box .box-icon { color: #FFC107; }
+.info-box    .box-icon { color: #2496ED; }
+.success-box .box-icon { color: #2ed573; }
+.danger-box  .box-icon { color: #e74c3c; }
+.box-title { font-weight: 600; color: #ffffff; margin-bottom: 10px; font-size: 16px; }
+
+/* ── Code blocks ── */
+.code-container { position: relative; margin: 20px 0; }
+.code-header {
+    background-color: #0a0a0a;
+    padding: 10px 15px;
+    border-radius: 6px 6px 0 0;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #2d2d2d;
+}
+.code-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+.copy-btn {
+    background-color: #2d2d2d;
+    color: #4ecdc4;
+    border: 1px solid #4ecdc4;
+    padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all .3s;
+}
+.copy-btn:hover { background-color: #4ecdc4; color: #0d0d0d; }
+.copy-btn.copied { background-color: #2ed573; border-color: #2ed573; color: #fff; }
+pre {
+    background-color: #0a0a0a;
+    padding: 20px;
+    border-radius: 0 0 6px 6px;
+    overflow-x: auto; margin: 0;
+    border: 1px solid #2d2d2d; border-top: none;
+}
+code { font-family: 'Courier New', monospace; font-size: 14px; color: #e0e0e0; line-height: 1.6; }
+.sh-cmd      { color: #4ecdc4; }
+.sh-flag     { color: #ff6b35; }
+.sh-arg      { color: #ffd93d; }
+.sh-comment  { color: #666; font-style: italic; }
+.sh-out      { color: #6b7280; }
+.df-instr    { color: #a78bfa; font-weight: 700; }
+.df-arg      { color: #ffd93d; }
+.df-comment  { color: #666; font-style: italic; }
+
+/* ── Tables ── */
+table { width: 100%; border-collapse: collapse; margin: 20px 0; background-color: #1f1f1f; border-radius: 6px; overflow: hidden; }
+th { background-color: #2d2d2d; color: #ffffff; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid #ffd93d; }
+td { padding: 15px; border-bottom: 1px solid #2d2d2d; color: #b0b0b0; }
+tr:hover { background-color: #252525; }
+
+/* ── Diagram container ── */
+.diagram-container {
+    background-color: #0a0a0a;
+    border: 2px solid #2d2d2d;
+    border-radius: 8px;
+    padding: 30px;
+    margin: 30px 0;
+    text-align: center;
+}
+.diagram-container svg { max-width: 100%; height: auto; }
+.diagram-caption {
+    font-size: 12px;
+    color: #555;
+    margin-top: 12px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: .04em;
+}
+
+/* ── Highlight box ── */
+.highlight-yellow {
+    background: linear-gradient(135deg, rgba(255,217,61,.15) 0%, rgba(255,217,61,.05) 100%);
+    padding: 20px; border-radius: 8px;
+    border: 2px solid #ffd93d; margin: 20px 0;
+}
+
+/* ── Step box ── */
+.step-box {
+    background-color: #1f1f1f;
+    border: 1px solid #2d2d2d;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all .3s;
+}
+.step-box:hover { border-color: #4ecdc4; box-shadow: 0 2px 8px rgba(78,205,196,.1); }
+.step-title { font-size: 20px; color: #ffffff; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; }
+.step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #ffd93d 0%, #f7931e 100%);
+    color: #0d0d0d; width: 34px; height: 34px; border-radius: 50%;
+    font-weight: bold; font-size: 16px; flex-shrink: 0;
+}
+.step-body { color: #b0b0b0; margin-left: 48px; line-height: 1.8; }
+.step-body code { font-family: 'Courier New', monospace; background: #0a0a0a; border: 1px solid #2d2d2d; padding: 1px 6px; border-radius: 3px; color: #ffd93d; font-size: 13px; }
+
+/* ── Comparison grid ── */
+.cmp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+.cmp-card { background-color: #1f1f1f; border-radius: 8px; overflow: hidden; }
+.cmp-head { padding: 14px 20px; font-size: 16px; font-weight: 700; letter-spacing: .05em; }
+.cmp-head.red  { background: rgba(231,76,60,.2);  color: #e74c3c; border-bottom: 2px solid #e74c3c; }
+.cmp-head.blue { background: rgba(36,150,237,.2); color: #2496ED; border-bottom: 2px solid #2496ED; }
+.cmp-head.green { background: rgba(46,213,115,.2); color: #2ed573; border-bottom: 2px solid #2ed573; }
+.cmp-body { padding: 16px 20px; }
+.cmp-row { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid #2d2d2d; font-size: 14px; color: #b0b0b0; }
+.cmp-row:last-child { border-bottom: none; }
+.cmp-row .icon { flex-shrink: 0; width: 20px; }
+
+/* ── Lab / knowledge-check ── */
+.lab-task {
+    background-color: #1f1f1f;
+    border: 1px dashed #4ecdc4;
+    border-radius: 6px;
+    padding: 18px 20px;
+    margin: 16px 0;
+}
+.lab-task .lab-task-label { font-size: 11px; color: #4ecdc4; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 700; }
+.answer-line { border-bottom: 1px solid #3d3d3d; height: 26px; margin-top: 10px; }
+.qnum { display:inline-flex; align-items:center; justify-content:center; background:#2d2d2d; color:#ffd93d; width:24px; height:24px; border-radius:50%; font-size:12px; font-weight:700; margin-right:10px; }
+
+/* ── Footer ── */
+.footer { background-color: #0a0a0a; padding: 30px; text-align: center; border-top: 3px solid #ffd93d; margin-top: 40px; }
+.footer-brand { font-size: 24px; font-weight: bold; color: #ffd93d; margin-bottom: 15px; letter-spacing: 2px; }
+.contact-info { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-top: 15px; }
+.contact-item { color: #4ecdc4; text-decoration: none; transition: color .3s; }
+.contact-item:hover { color: #ffd93d; }
+
+/* ── Scroll top ── */
+.scroll-top {
+    position: fixed; bottom: 30px; right: 30px;
+    background: linear-gradient(135deg, #ffd93d 0%, #f7931e 100%);
+    color: #0d0d0d; width: 50px; height: 50px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; opacity: 0; transition: opacity .3s;
+    box-shadow: 0 4px 12px rgba(255,217,61,.3); font-weight: bold; font-size: 18px;
+}
+.scroll-top.visible { opacity: 1; }
+.scroll-top:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(255,217,61,.4); }
+
+@media (max-width: 768px) {
+    body { padding: 10px; }
+    .course-title { font-size: 24px; }
+    .cmp-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="header">
+    <div class="brand">Cl0uDRec0N</div>
+    <div class="course-title">Dockerfile ADD vs COPY</div>
+    <div class="subtitle">File Transfer · Tar Auto-Extraction · Remote URLs · Performance &amp; Security</div>
+  </div>
+
+  <!-- ═══ META ═══ -->
+  <div class="lab-info">
+    <div class="info-card"><div class="info-label">Module</div><div class="info-value">Dockerfile Fundamentals</div></div>
+    <div class="info-card"><div class="info-label">Demo</div><div class="info-value">Steps 01–02 / Section 05</div></div>
+    <div class="info-card"><div class="info-label">Focus</div><div class="info-value">Theory + Hands-On</div></div>
+    <div class="info-card"><div class="info-label">Prerequisites</div><div class="info-value">Demo 4 — LABEL Instruction</div></div>
+    <div class="info-card"><div class="info-label">Base Image</div><div class="info-value">nginx:alpine-slim</div></div>
+    <div class="info-card"><div class="info-label">Next Up</div><div class="info-value">Demo 6 — ARG Instruction</div></div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ SECTION 1 — LEARNING OBJECTIVES ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🎯 Learning Objectives</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+        <div class="tip-box">
+          <span class="box-icon">💡</span>
+          <div class="box-title">By the end of this demo, you should be able to:</div>
+          <p style="margin-bottom:6px;">1. Explain what <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">COPY</code> does and where it can source files from.</p>
+          <p style="margin-bottom:6px;">2. Explain what <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">ADD</code> does, and what extra capabilities it has over COPY.</p>
+          <p style="margin-bottom:6px;">3. Compare COPY and ADD across file transfer, tar extraction, URL support, performance, and security.</p>
+          <p style="margin-bottom:6px;">4. Build an image that uses both instructions together and verify the result.</p>
+          <p>5. Explain why COPY is preferred in the vast majority of real-world Dockerfiles.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 2 — COPY VS ADD DEFINITIONS ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">📄 What Do COPY and ADD Actually Do?</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="highlight-yellow">
+          Both instructions share the <strong style="color:#ffd93d;">same core definition</strong>: copy new files or directories from a source and add them to the image's filesystem at a destination path.
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> COPY</div>
+          <div class="step-body">Copies files or directories from the <strong style="color:#fff;">build context</strong>, a <strong style="color:#fff;">build stage</strong>, a <strong style="color:#fff;">named context</strong>, or even <strong style="color:#fff;">another image</strong> — into the image being built.</div>
+        </div>
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">2</span> ADD</div>
+          <div class="step-body">Does everything COPY does (copying from the build context), <strong style="color:#fff;">plus two extra abilities</strong>: it can fetch files from a <strong style="color:#ffd93d;">remote URL</strong>, and pull from a <strong style="color:#ffd93d;">Git repository</strong>. ADD can also <strong style="color:#ffd93d;">automatically extract</strong> local tar archives into the destination.</div>
+        </div>
+
+        <div class="info-box">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-title">In Practice</div>
+          In roughly <strong style="color:#ffd93d;">99.99% of real-world Dockerfiles, COPY is used</strong>. ADD is reserved for the rare cases where you specifically need tar auto-extraction or a remote fetch.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 3 — COMPARISON TABLE ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">⚖️ COPY vs ADD — Full Comparison</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <table>
+          <thead><tr><th>Aspect</th><th>COPY</th><th>ADD</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#ffd93d;">File transfer from build context</td><td>✅ Yes</td><td>✅ Yes</td></tr>
+            <tr><td style="color:#ffd93d;">Tar archive extraction</td><td>❌ Not supported</td><td>✅ Automatically extracts local .tar files</td></tr>
+            <tr><td style="color:#ffd93d;">Remote URL support</td><td>❌ Not supported</td><td>✅ Can fetch a file from a URL</td></tr>
+            <tr><td style="color:#ffd93d;">Performance</td><td>Faster, lower overhead</td><td>Slower, especially with tar/URL features</td></tr>
+            <tr><td style="color:#ffd93d;">Security</td><td>Safe — local file transfers only</td><td>Riskier — pulling from remote URLs introduces risk</td></tr>
+            <tr><td style="color:#ffd93d;">Recommended use case</td><td>Preferred for all local file copies</td><td>Only when tar extraction or URL fetching is absolutely needed</td></tr>
+          </tbody>
+        </table>
+
+        <div class="warning-box">
+          <span class="box-icon">⚠️</span>
+          <div class="box-title">The Rule of Thumb</div>
+          Use <strong style="color:#FFC107;">COPY</strong> unless you specifically need tar extraction or fetching from a remote URL — then, and only then, reach for <strong style="color:#FFC107;">ADD</strong>.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 4 — THE DOCKERFILE FOR THIS DEMO ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🧱 The Dockerfile — COPY + ADD Together</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="highlight-yellow">
+          Two things get added to the base image: a single file via <strong style="color:#ffd93d;">COPY</strong>, and an entire tarred folder of files via <strong style="color:#ffd93d;">ADD</strong> (which auto-extracts them).
+        </div>
+
+        <div class="code-container">
+          <div class="code-header"><span class="code-label">Dockerfile</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="df-instr">FROM</span> <span class="df-arg">nginx:alpine-slim</span>
+
+<span class="df-comment"># OCI labels (trimmed down for this demo)</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.authors="Your Name"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.title="Demo5 Dockerfile ADD vs COPY"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.description="ADD vs COPY instruction demo"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.version="1.0"</span>
+
+<span class="df-comment"># COPY: a single local file</span>
+<span class="df-instr">COPY</span> <span class="df-arg">copy-file.html /usr/share/nginx/html/</span>
+
+<span class="df-comment"># ADD: a local tar archive, auto-extracted into the destination</span>
+<span class="df-instr">ADD</span> <span class="df-arg">static-files.tar.gz /usr/share/nginx/html/</span></code></pre>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> app-files/ folder</div>
+          <div class="step-body">Contains <code>index.html</code> plus <code>file1.html</code> through <code>file5.html</code> — index.html links out to each of the five files.</div>
+        </div>
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">2</span> copy-file.html</div>
+          <div class="step-body">A single standalone file, copied directly with <code>COPY</code> — no compression involved.</div>
+        </div>
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">3</span> static-files.tar.gz</div>
+          <div class="step-body">All six files from <code>app-files/</code> compressed into one archive, then extracted automatically into the image by <code>ADD</code>.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 5 — BUILD & VERIFY ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🔨 Build, Run &amp; Verify</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> Create the tar archive</div>
+          <div class="step-body">
+            From inside <code>app-files/</code>, compress every file into a single archive:
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">tar</span> <span class="sh-flag">-czvf</span> <span class="sh-arg">static-files.tar.gz</span> index.html file1.html file2.html file3.html file4.html file5.html</code></pre>
+            </div>
+            Then move (or copy) <code>static-files.tar.gz</code> into the same folder as the Dockerfile, next to <code>copy-file.html</code>.
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">2</span> Build the image</div>
+          <div class="step-body">
+            Run this from inside the folder containing the Dockerfile, <code>copy-file.html</code>, and <code>static-files.tar.gz</code>:
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> build <span class="sh-flag">-t</span> <span class="sh-arg">demo5-dockerfile-add-vs-copy:v1</span> .</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">3</span> Run it</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> run <span class="sh-flag">--name</span> <span class="sh-arg">my-add-vs-copy-demo</span> <span class="sh-flag">-p</span> <span class="sh-arg">8080:80</span> <span class="sh-flag">-d</span> <span class="sh-arg">demo5-dockerfile-add-vs-copy:v1</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">4</span> Verify in the browser</div>
+          <div class="step-body">
+            Visit <code>http://localhost:8080</code> — the index page (delivered via <code>ADD</code>'s extraction) links to file1.html through file5.html. If the page looks stale, hard-refresh — browsers cache aggressively. Then visit <code>http://localhost:8080/copy-file.html</code> directly to confirm the <code>COPY</code>-delivered file is present too.
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">5</span> Verify inside the container</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> exec <span class="sh-flag">-it</span> <span class="sh-arg">my-add-vs-copy-demo</span> /bin/sh
+cd /usr/share/nginx/html
+ls</code></pre>
+            </div>
+            You should see <code>copy-file.html</code> (from COPY) alongside <code>index.html</code>, <code>file1.html</code>…<code>file5.html</code> (extracted by ADD) — all sitting side by side in the same directory.
+          </div>
+        </div>
+
+        <!-- DIAGRAM 1 — COPY vs ADD flow -->
+        <div class="diagram-container">
+          <svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg" style="max-width:760px;">
+            <defs><marker id="dac1" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#4ecdc4"/></marker></defs>
+
+            <text x="380" y="20" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="13" font-weight="700" fill="#ffd93d" letter-spacing="1">COPY vs ADD — WHERE FILES END UP</text>
+
+            <rect x="30" y="50" width="170" height="50" rx="7" fill="#1f1f1f" stroke="#4ecdc4" stroke-width="1.5"/>
+            <text x="115" y="80" text-anchor="middle" font-family="Courier New,monospace" font-size="11" fill="#4ecdc4">copy-file.html</text>
+
+            <line x1="200" y1="75" x2="270" y2="75" stroke="#4ecdc4" stroke-width="2" marker-end="url(#dac1)"/>
+            <text x="235" y="65" text-anchor="middle" font-family="Courier New,monospace" font-size="9" fill="#4ecdc4">COPY</text>
+
+            <rect x="30" y="120" width="170" height="50" rx="7" fill="#1f1f1f" stroke="#a78bfa" stroke-width="1.5"/>
+            <text x="115" y="145" text-anchor="middle" font-family="Courier New,monospace" font-size="11" fill="#a78bfa">static-files.tar.gz</text>
+            <text x="115" y="160" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="9" fill="#666">6 files inside</text>
+
+            <line x1="200" y1="145" x2="270" y2="105" stroke="#a78bfa" stroke-width="2" marker-end="url(#dac1)"/>
+            <text x="245" y="118" text-anchor="middle" font-family="Courier New,monospace" font-size="9" fill="#a78bfa">ADD (extracts)</text>
+
+            <rect x="274" y="50" width="460" height="130" rx="10" fill="#111" stroke="#2d2d2d" stroke-width="1.5"/>
+            <text x="504" y="72" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" font-weight="700" fill="#b0b0b0">/usr/share/nginx/html/</text>
+
+            <rect x="294" y="86" width="120" height="30" rx="5" fill="#16241a" stroke="#2ed573"/>
+            <text x="354" y="106" text-anchor="middle" font-family="Courier New,monospace" font-size="9" fill="#2ed573">copy-file.html</text>
+            <rect x="424" y="86" width="100" height="30" rx="5" fill="#16241a" stroke="#2ed573"/>
+            <text x="474" y="106" text-anchor="middle" font-family="Courier New,monospace" font-size="9" fill="#2ed573">index.html</text>
+            <rect x="534" y="86" width="90" height="30" rx="5" fill="#16241a" stroke="#2ed573"/>
+            <text x="579" y="106" text-anchor="middle" font-family="Courier New,monospace" font-size="9" fill="#2ed573">file1.html</text>
+            <rect x="634" y="86" width="90" height="30" rx="5" fill="#16241a" stroke="#2ed573"/>
+            <text x="679" y="106" text-anchor="middle" font-family="Courier New,monospace" font-size="9" fill="#2ed573">file2.html…5</text>
+
+            <text x="504" y="140" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#b0b0b0">All files land in the same destination folder,</text>
+            <text x="504" y="156" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#b0b0b0">regardless of whether COPY or ADD placed them there.</text>
+          </svg>
+          <div class="diagram-caption">Diagram 1 — COPY moves one file as-is; ADD extracts the tar archive's contents into the same destination.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 6 — CLEANUP & SUMMARY ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🧹 Cleanup &amp; Summary</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> Remove the container and image</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> rm <span class="sh-flag">-f</span> <span class="sh-arg">my-add-vs-copy-demo</span>
+<span class="sh-cmd">docker</span> rmi <span class="sh-arg">demo5-dockerfile-add-vs-copy:v1</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="success-box">
+          <span class="box-icon">✅</span>
+          <div class="box-title">Summary</div>
+          <p style="margin-bottom:10px;"><strong>COPY</strong> and <strong>ADD</strong> both move files from a source into the image's filesystem — but <strong>ADD</strong> can additionally fetch from a <strong>remote URL</strong> or a <strong>Git repo</strong>, and <strong>auto-extract local tar archives</strong>.</p>
+          <p>COPY is faster, safer, and simpler — it's the right default in nearly every case. Reach for ADD only when you specifically need tar extraction or a remote fetch.</p>
+        </div>
+
+        <div class="tip-box">
+          <span class="box-icon">💡</span>
+          <div class="box-title">Coming Up Next</div>
+          The next demo covers the <strong>ARG</strong> instruction — defining build-time variables you can pass into <code>docker build</code>.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 7 — LAB REFLECTION ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">📝 Lab Reflection — Knowledge Check</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 1</div>
+          <span class="qnum">1</span>List the two capabilities ADD has that COPY does not.
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 2</div>
+          <span class="qnum">2</span>Why is COPY generally faster and safer than ADD?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 3</div>
+          <span class="qnum">3</span>In roughly what percentage of real-world Dockerfiles is COPY used instead of ADD?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 4</div>
+          <span class="qnum">4</span>If you pass a local <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">.tar.gz</code> file to ADD, what happens to it automatically that would NOT happen with COPY?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Task 5 — Try it yourself</div>
+          <span class="qnum">5</span>Build this demo's Dockerfile, run it, then <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker exec</code> in and list the contents of <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">/usr/share/nginx/html</code>. Paste the file listing you see.
+          <div class="answer-line"></div><div class="answer-line"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <div class="footer">
+    <div class="footer-brand">Cl0uDRec0N</div>
+    <div>Kubernetes &amp; Docker Training — Cloud Technology Solutions</div>
+    <div class="contact-info">
+      <a class="contact-item" href="mailto:cyb3rlabs@hotmail.com">📧 cyb3rlabs@hotmail.com</a>
+      <a class="contact-item" href="#">📱 WhatsApp: +1 431-337-3360</a>
+      <a class="contact-item" href="https://github.com/ComputerTrainer0/Mastering-Docker-Kube" target="_blank">💻 GitHub Code</a>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+
+<script>
+function toggle(header) {
+  const content = header.nextElementSibling;
+  const icon = header.querySelector('.toggle-icon');
+  const isActive = content.classList.toggle('active');
+  icon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function copyCode(btn) {
+  const pre = btn.closest('.code-container').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+window.addEventListener('scroll', () => {
+  const st = document.getElementById('scrollTop');
+  st.classList.toggle('visible', window.scrollY > 300);
+});
+</script>
+</body>
+</html>
