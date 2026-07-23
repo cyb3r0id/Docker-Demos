@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dockerfile ADD — Fetch From URL | Cl0uDRec0N Lab Manual</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0d0d0d;
+    color: #a0a0a0;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+/* ── Header ── */
+.header {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    padding: 30px;
+    border-bottom: 3px solid #ffd93d;
+    position: relative;
+}
+.header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, #ffd93d 0%, #f7931e 100%);
+}
+.brand {
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffd93d;
+    text-shadow: 0 0 10px rgba(255,217,61,0.3);
+    letter-spacing: 2px;
+}
+.course-title { font-size: 32px; color: #ffffff; margin: 15px 0 10px; font-weight: 600; }
+.subtitle { font-size: 18px; color: #4ecdc4; font-weight: 300; }
+
+/* ── Meta cards ── */
+.lab-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 30px;
+    background-color: #151515;
+    border-bottom: 1px solid #2d2d2d;
+}
+.info-card {
+    background-color: #1f1f1f;
+    padding: 20px;
+    border-radius: 6px;
+    border-left: 4px solid #ffd93d;
+    transition: all .3s;
+}
+.info-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,217,61,.2); }
+.info-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.info-value { font-size: 18px; color: #ffffff; font-weight: 600; }
+
+/* ── Content ── */
+.content { padding: 30px; }
+.section { margin-bottom: 40px; }
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #2d2d2d 0%, #1f1f1f 100%);
+    padding: 15px 20px;
+    border-radius: 6px;
+    border-left: 4px solid #4ecdc4;
+    cursor: pointer;
+    transition: all .3s;
+    margin-bottom: 20px;
+}
+.section-header:hover {
+    background: linear-gradient(135deg, #353535 0%, #252525 100%);
+    border-left-color: #ffd93d;
+}
+.section-title { font-size: 24px; color: #ffffff; font-weight: 600; }
+.toggle-icon { font-size: 20px; color: #4ecdc4; transition: transform .3s; }
+
+.section-content { padding: 0 20px; max-height: 0; overflow: hidden; transition: max-height .5s ease; }
+.section-content.active { max-height: 90000px; padding: 20px; }
+
+/* ── Callout boxes ── */
+.tip-box, .warning-box, .info-box, .success-box, .danger-box {
+    padding: 20px;
+    border-radius: 6px;
+    margin: 20px 0;
+    border-left: 4px solid;
+    position: relative;
+    padding-left: 60px;
+}
+.tip-box     { background-color: rgba(78,205,196,.10); border-left-color: #4ecdc4; }
+.warning-box { background-color: rgba(255,193,7,.10);  border-left-color: #FFC107; }
+.info-box    { background-color: rgba(36,150,237,.10); border-left-color: #2496ED; }
+.success-box { background-color: rgba(46,213,115,.15); border-left-color: #2ed573; }
+.danger-box  { background-color: rgba(231,76,60,.15);  border-left-color: #e74c3c; }
+.box-icon { position: absolute; left: 20px; top: 20px; font-size: 24px; }
+.tip-box     .box-icon { color: #4ecdc4; }
+.warning-box .box-icon { color: #FFC107; }
+.info-box    .box-icon { color: #2496ED; }
+.success-box .box-icon { color: #2ed573; }
+.danger-box  .box-icon { color: #e74c3c; }
+.box-title { font-weight: 600; color: #ffffff; margin-bottom: 10px; font-size: 16px; }
+
+/* ── Code blocks ── */
+.code-container { position: relative; margin: 20px 0; }
+.code-header {
+    background-color: #0a0a0a;
+    padding: 10px 15px;
+    border-radius: 6px 6px 0 0;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #2d2d2d;
+}
+.code-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+.copy-btn {
+    background-color: #2d2d2d;
+    color: #4ecdc4;
+    border: 1px solid #4ecdc4;
+    padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all .3s;
+}
+.copy-btn:hover { background-color: #4ecdc4; color: #0d0d0d; }
+.copy-btn.copied { background-color: #2ed573; border-color: #2ed573; color: #fff; }
+pre {
+    background-color: #0a0a0a;
+    padding: 20px;
+    border-radius: 0 0 6px 6px;
+    overflow-x: auto; margin: 0;
+    border: 1px solid #2d2d2d; border-top: none;
+}
+code { font-family: 'Courier New', monospace; font-size: 14px; color: #e0e0e0; line-height: 1.6; }
+.sh-cmd      { color: #4ecdc4; }
+.sh-flag     { color: #ff6b35; }
+.sh-arg      { color: #ffd93d; }
+.sh-comment  { color: #666; font-style: italic; }
+.sh-out      { color: #6b7280; }
+.df-instr    { color: #a78bfa; font-weight: 700; }
+.df-arg      { color: #ffd93d; }
+.df-comment  { color: #666; font-style: italic; }
+
+/* ── Tables ── */
+table { width: 100%; border-collapse: collapse; margin: 20px 0; background-color: #1f1f1f; border-radius: 6px; overflow: hidden; }
+th { background-color: #2d2d2d; color: #ffffff; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid #ffd93d; }
+td { padding: 15px; border-bottom: 1px solid #2d2d2d; color: #b0b0b0; }
+tr:hover { background-color: #252525; }
+
+/* ── Diagram container ── */
+.diagram-container {
+    background-color: #0a0a0a;
+    border: 2px solid #2d2d2d;
+    border-radius: 8px;
+    padding: 30px;
+    margin: 30px 0;
+    text-align: center;
+}
+.diagram-container svg { max-width: 100%; height: auto; }
+.diagram-caption {
+    font-size: 12px;
+    color: #555;
+    margin-top: 12px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: .04em;
+}
+
+/* ── Highlight box ── */
+.highlight-yellow {
+    background: linear-gradient(135deg, rgba(255,217,61,.15) 0%, rgba(255,217,61,.05) 100%);
+    padding: 20px; border-radius: 8px;
+    border: 2px solid #ffd93d; margin: 20px 0;
+}
+
+/* ── Step box ── */
+.step-box {
+    background-color: #1f1f1f;
+    border: 1px solid #2d2d2d;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all .3s;
+}
+.step-box:hover { border-color: #4ecdc4; box-shadow: 0 2px 8px rgba(78,205,196,.1); }
+.step-title { font-size: 20px; color: #ffffff; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; }
+.step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #ffd93d 0%, #f7931e 100%);
+    color: #0d0d0d; width: 34px; height: 34px; border-radius: 50%;
+    font-weight: bold; font-size: 16px; flex-shrink: 0;
+}
+.step-body { color: #b0b0b0; margin-left: 48px; line-height: 1.8; }
+.step-body code { font-family: 'Courier New', monospace; background: #0a0a0a; border: 1px solid #2d2d2d; padding: 1px 6px; border-radius: 3px; color: #ffd93d; font-size: 13px; }
+
+/* ── Lab / knowledge-check ── */
+.lab-task {
+    background-color: #1f1f1f;
+    border: 1px dashed #4ecdc4;
+    border-radius: 6px;
+    padding: 18px 20px;
+    margin: 16px 0;
+}
+.lab-task .lab-task-label { font-size: 11px; color: #4ecdc4; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 700; }
+.answer-line { border-bottom: 1px solid #3d3d3d; height: 26px; margin-top: 10px; }
+.qnum { display:inline-flex; align-items:center; justify-content:center; background:#2d2d2d; color:#ffd93d; width:24px; height:24px; border-radius:50%; font-size:12px; font-weight:700; margin-right:10px; }
+
+/* ── Footer ── */
+.footer { background-color: #0a0a0a; padding: 30px; text-align: center; border-top: 3px solid #ffd93d; margin-top: 40px; }
+.footer-brand { font-size: 24px; font-weight: bold; color: #ffd93d; margin-bottom: 15px; letter-spacing: 2px; }
+.contact-info { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-top: 15px; }
+.contact-item { color: #4ecdc4; text-decoration: none; transition: color .3s; }
+.contact-item:hover { color: #ffd93d; }
+
+/* ── Scroll top ── */
+.scroll-top {
+    position: fixed; bottom: 30px; right: 30px;
+    background: linear-gradient(135deg, #ffd93d 0%, #f7931e 100%);
+    color: #0d0d0d; width: 50px; height: 50px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; opacity: 0; transition: opacity .3s;
+    box-shadow: 0 4px 12px rgba(255,217,61,.3); font-weight: bold; font-size: 18px;
+}
+.scroll-top.visible { opacity: 1; }
+.scroll-top:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(255,217,61,.4); }
+
+@media (max-width: 768px) {
+    body { padding: 10px; }
+    .course-title { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="header">
+    <div class="brand">Cl0uDRec0N</div>
+    <div class="course-title">Dockerfile ADD — Fetch From URL</div>
+    <div class="subtitle">Pulling Files Into an Image Directly From a GitHub Release</div>
+  </div>
+
+  <!-- ═══ META ═══ -->
+  <div class="lab-info">
+    <div class="info-card"><div class="info-label">Module</div><div class="info-value">Dockerfile Fundamentals</div></div>
+    <div class="info-card"><div class="info-label">Demo</div><div class="info-value">Steps 01–02 / Section 06</div></div>
+    <div class="info-card"><div class="info-label">Focus</div><div class="info-value">Theory + Hands-On</div></div>
+    <div class="info-card"><div class="info-label">Prerequisites</div><div class="info-value">Demo 5 — ADD vs COPY</div></div>
+    <div class="info-card"><div class="info-label">Base Image</div><div class="info-value">nginx:alpine-slim</div></div>
+    <div class="info-card"><div class="info-label">Next Up</div><div class="info-value">Demo 7 — ARG Instruction</div></div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ SECTION 1 — LEARNING OBJECTIVES ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🎯 Learning Objectives</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+        <div class="tip-box">
+          <span class="box-icon">💡</span>
+          <div class="box-title">By the end of this demo, you should be able to:</div>
+          <p style="margin-bottom:6px;">1. Explain the "fetch from URL" capability of the <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">ADD</code> instruction.</p>
+          <p style="margin-bottom:6px;">2. Reference a GitHub release URL directly inside a Dockerfile's <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">ADD</code> instruction.</p>
+          <p style="margin-bottom:6px;">3. Build and run an image that fetches its content from a remote source at build time.</p>
+          <p>4. Verify the fetched content both in the browser and from inside the running container.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 2 — THE FETCH-FROM-URL FEATURE ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🌐 ADD's "Fetch From URL" Feature</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="highlight-yellow">
+          This feature lets <code style="color:#fff;">ADD</code> pull files from a <strong style="color:#ffd93d;">remote location</strong> — a plain zip file at a URL, or, as in this demo, a <strong style="color:#ffd93d;">GitHub release</strong>.
+        </div>
+
+        <div class="info-box">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-title">The Setup for This Demo</div>
+          A <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docs/</code> folder contains <code>index.html</code>, <code>git1.html</code>, and <code>git2.html</code>. That folder gets uploaded to a new public GitHub repository, and a <strong style="color:#ffd93d;">v1.0.0 release</strong> is created from it — giving us a stable URL the Dockerfile can pull from.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 3 — PREREQUISITE: THE GITHUB REPO & RELEASE ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">📦 Prerequisite — Creating the GitHub Repository &amp; Release</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="info-box">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-title">This Step Is Optional For You</div>
+          A ready-made public repository is already available for this demo's Dockerfile to reference. This section walks through <em>how</em> it was created, purely for extra understanding — you can skip straight to <strong style="color:#fff;">Build &amp; Run</strong> below if you'd rather not repeat these steps yourself.
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> Create a public repository</div>
+          <div class="step-body">On GitHub, create a new <strong style="color:#fff;">public</strong> repository (e.g. <code>docker-add-fetch-url-demo</code>), optionally initialized with a README.</div>
+        </div>
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">2</span> Upload the docs/ folder</div>
+          <div class="step-body">Upload the entire <code>docs</code> folder (containing <code>index.html</code>, <code>git1.html</code>, <code>git2.html</code>) and commit the change — this creates a <code>docs/</code> path in the repository.</div>
+        </div>
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">3</span> Create a release</div>
+          <div class="step-body">Go to <strong style="color:#fff;">Releases → Create a new release</strong>. Choose (or create) the tag <code style="color:#ffd93d;">v1.0.0</code>, give it a title like "Version 1.0.0", and publish it.</div>
+        </div>
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">4</span> Confirm the release URL</div>
+          <div class="step-body">The published release gives you a stable, versioned URL pointing at the <code>docs</code> folder's contents at tag <code>v1.0.0</code> — that's the URL the Dockerfile references.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 4 — THE DOCKERFILE ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🧱 The Dockerfile — ADD From a GitHub Release URL</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="code-container">
+          <div class="code-header"><span class="code-label">Dockerfile</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="df-instr">FROM</span> <span class="df-arg">nginx:alpine-slim</span>
+
+<span class="df-comment"># Standard OCI labels (see Demo 4)</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.authors="Your Name"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.title="Demo6 Dockerfile ADD Fetch From URL"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.description="ADD instruction — fetch from a GitHub release URL"</span>
+<span class="df-instr">LABEL</span> <span class="df-arg">org.opencontainers.image.version="1.0"</span>
+
+<span class="df-comment"># ADD: fetch directly from a GitHub release URL</span>
+<span class="df-instr">ADD</span> <span class="df-arg">https://github.com/&lt;your-username&gt;/docker-add-fetch-url-demo/releases/download/v1.0.0/docs.zip /usr/share/nginx/html/</span></code></pre>
+        </div>
+
+        <div class="info-box">
+          <span class="box-icon">ℹ️</span>
+          <div class="box-title">What Happens at Build Time</div>
+          Docker downloads whatever is at that GitHub release URL — the contents of the <code>docs/</code> folder tagged <code>v1.0.0</code> (<code>index.html</code>, <code>git1.html</code>, <code>git2.html</code>) — and places it into <code>/usr/share/nginx/html/</code>, exactly as if you'd run <code>COPY</code> on a local copy of those same files.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 5 — BUILD & VERIFY ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🔨 Build, Run &amp; Verify</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> Build the image</div>
+          <div class="step-body">
+            Run from inside the folder containing the Dockerfile:
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> build <span class="sh-flag">-t</span> <span class="sh-arg">demo6-dockerfile-add-fetch-url:v1</span> .</code></pre>
+            </div>
+            Watch the build output — you'll see Docker reach out to the GitHub URL and pull the release content down as part of the <code>ADD</code> step.
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">2</span> Run it</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> run <span class="sh-flag">--name</span> <span class="sh-arg">my-add-fetch-url-demo</span> <span class="sh-flag">-p</span> <span class="sh-arg">8080:80</span> <span class="sh-flag">-d</span> <span class="sh-arg">demo6-dockerfile-add-fetch-url:v1</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">3</span> Verify in the browser</div>
+          <div class="step-body">
+            Visit <code>http://localhost:8080</code> (hard-refresh if the page looks stale) — you should see the index page with links to <strong style="color:#fff;">git1.html</strong> and <strong style="color:#fff;">git2.html</strong>, each loading correctly from a "Back to main page" link.
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">4</span> Verify from inside the container</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> exec <span class="sh-flag">-it</span> <span class="sh-arg">my-add-fetch-url-demo</span> /bin/sh
+cd /usr/share/nginx/html
+ls</code></pre>
+            </div>
+            You should see <code>index.html</code>, <code>git1.html</code>, and <code>git2.html</code> — confirming the GitHub release content landed exactly where the Dockerfile said it should.
+          </div>
+        </div>
+
+        <!-- DIAGRAM 1 — Fetch from URL flow -->
+        <div class="diagram-container">
+          <svg viewBox="0 0 760 190" xmlns="http://www.w3.org/2000/svg" style="max-width:760px;">
+            <defs><marker id="dfu" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#f7931e"/></marker></defs>
+
+            <text x="380" y="20" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="13" font-weight="700" fill="#ffd93d" letter-spacing="1">ADD — FETCH FROM URL, AT BUILD TIME</text>
+
+            <rect x="30" y="50" width="200" height="80" rx="8" fill="#1f1f1f" stroke="#f7931e" stroke-width="2"/>
+            <text x="130" y="76" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" font-weight="700" fill="#f7931e">GitHub Release v1.0.0</text>
+            <text x="130" y="96" text-anchor="middle" font-family="Courier New,monospace" font-size="9" fill="#b0b0b0">docs/index.html</text>
+            <text x="130" y="112" text-anchor="middle" font-family="Courier New,monospace" font-size="9" fill="#b0b0b0">docs/git1.html · git2.html</text>
+
+            <line x1="230" y1="90" x2="300" y2="90" stroke="#f7931e" stroke-width="2" marker-end="url(#dfu)"/>
+            <text x="265" y="80" text-anchor="middle" font-family="Courier New,monospace" font-size="9" fill="#f7931e">ADD (URL)</text>
+
+            <rect x="304" y="50" width="200" height="80" rx="8" fill="#111" stroke="#2d2d2d" stroke-width="1.5"/>
+            <text x="404" y="72" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" font-weight="700" fill="#b0b0b0">docker build</text>
+            <text x="404" y="94" text-anchor="middle" font-family="Courier New,monospace" font-size="9" fill="#666">downloads at build time</text>
+            <text x="404" y="112" text-anchor="middle" font-family="Courier New,monospace" font-size="9" fill="#666">no local files needed</text>
+
+            <line x1="504" y1="90" x2="574" y2="90" stroke="#2ed573" stroke-width="2" marker-end="url(#dfu)"/>
+            <text x="539" y="80" text-anchor="middle" font-family="Courier New,monospace" font-size="9" fill="#2ed573">places in</text>
+
+            <rect x="578" y="50" width="150" height="80" rx="8" fill="#16241a" stroke="#2ed573" stroke-width="2"/>
+            <text x="653" y="76" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" font-weight="700" fill="#2ed573">/usr/share/</text>
+            <text x="653" y="92" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" font-weight="700" fill="#2ed573">nginx/html/</text>
+            <text x="653" y="112" text-anchor="middle" font-family="Courier New,monospace" font-size="9" fill="#b0b0b0">inside the image</text>
+
+            <rect x="30" y="146" width="698" height="30" rx="6" fill="#111" stroke="#2d2d2d"/>
+            <text x="379" y="166" text-anchor="middle" font-family="Courier New,monospace" font-size="10" fill="#b0b0b0">Only ADD can fetch remote content like this — COPY cannot reach outside the build context</text>
+          </svg>
+          <div class="diagram-caption">Diagram 1 — At build time, ADD reaches out over the network to grab the release content, no local copy required.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 6 — CLEANUP & SUMMARY ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">🧹 Cleanup &amp; Summary</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="step-box">
+          <div class="step-title"><span class="step-num">1</span> Remove the container and image</div>
+          <div class="step-body">
+            <div class="code-container">
+              <div class="code-header"><span class="code-label">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code><span class="sh-cmd">docker</span> rm <span class="sh-flag">-f</span> <span class="sh-arg">my-add-fetch-url-demo</span>
+<span class="sh-cmd">docker</span> rmi <span class="sh-arg">demo6-dockerfile-add-fetch-url:v1</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="success-box">
+          <span class="box-icon">✅</span>
+          <div class="box-title">Summary</div>
+          <p style="margin-bottom:10px;"><code>ADD</code> can pull content straight from a <strong>remote URL</strong> — in this demo, a versioned <strong>GitHub release</strong> — and place it inside the image, entirely at build time.</p>
+          <p>This is exactly the kind of scenario where <code>ADD</code>'s extra power over <code>COPY</code> earns its place, even though COPY remains the default choice for local files.</p>
+        </div>
+
+        <div class="tip-box">
+          <span class="box-icon">💡</span>
+          <div class="box-title">Coming Up Next</div>
+          The next demo covers the <strong>ARG</strong> instruction — passing build-time variables into <code>docker build</code>.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 7 — LAB REFLECTION ═══ -->
+    <div class="section">
+      <div class="section-header" onclick="toggle(this)">
+        <span class="section-title">📝 Lab Reflection — Knowledge Check</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="section-content active">
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 1</div>
+          <span class="qnum">1</span>What two kinds of remote sources can <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">ADD</code>'s fetch-from-URL feature pull from, as mentioned in the intro?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 2</div>
+          <span class="qnum">2</span>What GitHub artifact provides the stable URL this demo's Dockerfile references?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Question 3</div>
+          <span class="qnum">3</span>Why can't <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">COPY</code> be used to achieve the same result as this demo?
+          <div class="answer-line"></div>
+        </div>
+
+        <div class="lab-task">
+          <div class="lab-task-label">Task 4 — Try it yourself</div>
+          <span class="qnum">4</span>Build and run this demo's image, then confirm via <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">docker exec</code> that <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">git1.html</code> and <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">git2.html</code> both exist in <code style="background:#0a0a0a;border:1px solid #2d2d2d;padding:1px 6px;border-radius:3px;color:#ffd93d;">/usr/share/nginx/html</code>. Note what you saw.
+          <div class="answer-line"></div><div class="answer-line"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <div class="footer">
+    <div class="footer-brand">Cl0uDRec0N</div>
+    <div>Kubernetes &amp; Docker Training — Cloud Technology Solutions</div>
+    <div class="contact-info">
+      <a class="contact-item" href="mailto:cyb3rlabs@hotmail.com">📧 cyb3rlabs@hotmail.com</a>
+      <a class="contact-item" href="#">📱 WhatsApp: +1 431-337-3360</a>
+      <a class="contact-item" href="https://github.com/ComputerTrainer0/Mastering-Docker-Kube" target="_blank">💻 GitHub Code</a>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+
+<script>
+function toggle(header) {
+  const content = header.nextElementSibling;
+  const icon = header.querySelector('.toggle-icon');
+  const isActive = content.classList.toggle('active');
+  icon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function copyCode(btn) {
+  const pre = btn.closest('.code-container').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+window.addEventListener('scroll', () => {
+  const st = document.getElementById('scrollTop');
+  st.classList.toggle('visible', window.scrollY > 300);
+});
+</script>
+</body>
+</html>
